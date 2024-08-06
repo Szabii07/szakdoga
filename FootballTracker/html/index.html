@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <title>Szakdolgozat</title>
+</head>
+<body>
+    <div class="container" id="container">
+        <div class="form-container sign-up-container">
+            <form method="post" action="{% url 'index' %}">
+                {% csrf_token %}
+                <h1>Fiók létrehozása</h1>
+                <div class="form-group">
+                    <label for="{{ signup_form.username.id_for_label }}">{{ signup_form.username.label }}</label>
+                    {{ signup_form.username }}
+                    {% if signup_form.username.errors %}
+                        <div class="error">{{ signup_form.username.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ signup_form.password1.id_for_label }}">{{ signup_form.password1.label }}</label>
+                    {{ signup_form.password1 }}
+                    {% if signup_form.password1.errors %}
+                        <div class="error">{{ signup_form.password1.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ signup_form.password2.id_for_label }}">{{ signup_form.password2.label }}</label>
+                    {{ signup_form.password2 }}
+                    {% if signup_form.password2.errors %}
+                        <div class="error">{{ signup_form.password2.errors }}</div>
+                    {% endif %}
+                </div>
+                <button type="submit" name="signup">Regisztráció</button>
+            </form>
+            
+        </div>
+        <div class="form-container sign-in-container">
+            <form method="post" action="{% url 'index' %}">
+                {% csrf_token %}
+                <h1>Bejelentkezés</h1>
+                {% for field in login_form %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="error">{{ field.errors }}</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                <a href="#">Elfelejtett jelszó</a>
+                <button type="submit" name="login">Bejelentkezés</button>
+            </form>
+        </div>
+        <div class="overlay-container">
+            <div class="overlay">
+                <div class="overlay-panel overlay-left">
+                    <h1>Köszöntelek újra!</h1>
+                    <p>A bejelentkezéshez add meg az adataid</p>
+                    <button class="ghost" id="signIn">Bejelentkezek</button>
+                </div>
+                <div class="overlay-panel overlay-right">
+                    <h1>Üdvözöllek!</h1>
+                    <p>Regisztrálj és találd meg a helyed velünk</p>
+                    <button class="ghost" id="signUp">Regisztrálok</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'js/index.js' %}"></script>
+</body>
+</html>
