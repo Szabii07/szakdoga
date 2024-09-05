@@ -1,7 +1,7 @@
-# forms.py
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from .models import UserProfile, PlayerProfile, Coach, Manager, Post, Message
 
 class SignupForm(UserCreationForm):
     class Meta:
@@ -11,11 +11,6 @@ class SignupForm(UserCreationForm):
             'username': 'Felhasználónév',
             'password1': 'Jelszó',
             'password2': 'Jelszó megerősítése',
-        }
-        help_texts = {
-            'username': '',
-            'password1': '',
-            'password2': '',
         }
         widgets = {
             'password1': forms.PasswordInput(attrs={'autocomplete': 'new-password'}),
@@ -30,21 +25,71 @@ class LoginForm(AuthenticationForm):
             'username': 'Felhasználónév',
             'password': 'Jelszó',
         }
-        help_texts = {
-            'username': '',
-            'password': '',
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = ['last_name', 'first_name', 'email', 'role']
+        labels = {
+            'last_name': 'Vezetéknév',
+            'first_name': 'Keresztnév',
+            'email': 'Email cím',
+            'role': 'Szerep'
         }
 
-class ProfileForm(forms.ModelForm):
+class PlayerProfileForm(forms.ModelForm):
     class Meta:
-        model = User
-        fields = ['username', 'email', 'first_name', 'last_name']
+        model = PlayerProfile
+        fields = ['birthdate', 'team', 'position', 'preferred_foot', 'height', 'location', 'looking_for_team', 'experience']
         widgets = {
-            'profile_picture': forms.FileInput(),
+            'birthdate': forms.DateInput(attrs={'type': 'date'}),
+            'position': forms.HiddenInput(),  # Rejtett mező, amit JS fog kitölteni
+            'preferred_foot': forms.Select(choices=[('left', 'Bal'), ('right', 'Jobb'), ('two', 'Kétlábas')])
         }
         labels = {
-            'username': 'Felhasználónév',
-            'email': 'Email',
-            'first_name': 'Keresztnév',
-            'last_name': 'Vezetéknév',
+            'birthdate': 'Születési idő',
+            'team': 'Csapatnév',
+            'position': 'Pozíció',
+            'preferred_foot': 'Milyen lábas',
+            'height': 'Magasság',
+            'location': 'Tartózkodási hely',
+            'looking_for_team': 'Keres csapatot?',
+            'experience': 'Tapasztalatok'
         }
+
+class CoachForm(forms.ModelForm):
+    birthdate = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+
+    class Meta:
+        model = Coach
+        fields = ['birthdate', 'team']
+        labels = {
+            'birthdate': 'Születési idő',
+            'team': 'Csapat'
+        }
+
+class ManagerForm(forms.ModelForm):
+    birthdate = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+    players = forms.ModelMultipleChoiceField(queryset=PlayerProfile.objects.all(), required=False, widget=forms.CheckboxSelectMultiple)
+
+    class Meta:
+        model = Manager
+        fields = ['birthdate', 'players']
+        labels = {
+            'birthdate': 'Születési idő',
+            'players': 'Játékosok'
+        }
+
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ['content']
+
+class MessageForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = ['receiver', 'content']

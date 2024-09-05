@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <title>Játékos Dashboard</title>
+</head>
+<body>
+    <h1>Welcome, {{ user.username }}!</h1>
+    
+    <!-- Profil szerkesztés -->
+    <a href="{% url 'profile_edit' %}">Edit Profile</a>
+    
+    <!-- Poszt létrehozása -->
+    <h2>Create a Post</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ post_form.as_p }}
+        <button type="submit" name="post">Post</button>
+    </form>
+    
+    <!-- Posztok megjelenítése -->
+    <h2>Posts</h2>
+    <ul>
+        {% for post in posts %}
+            <li>{{ post.user_profile.user.username }}: {{ post.content }} ({{ post.created_at }})</li>
+        {% empty %}
+            <li>No posts yet.</li>
+        {% endfor %}
+    </ul>
+    
+    <!-- Üzenet küldése -->
+    <h2>Send a Message</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ message_form.as_p }}
+        <button type="submit" name="message">Send</button>
+    </form>
+    
+    <!-- Követett profilok -->
+    <h2>Following</h2>
+    <ul>
+        {% for profile in following_profiles %}
+            <li>{{ profile.user.username }}</li>
+        {% empty %}
+            <li>You are not following anyone.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

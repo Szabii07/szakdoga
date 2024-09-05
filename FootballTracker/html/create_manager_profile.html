@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/create_manager_profile.css' %}">
+    <title>Menedzser profil létrehozása</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Menedzser profil létrehozása</h1>
+        <form method="post" action="{% url 'create_manager_profile' %}">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="error">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <!-- Játékosok kiválasztása -->
+            <div class="form-group">
+                <button type="button" id="select-players-btn">Játékosok kiválasztása</button>
+                <input type="hidden" id="selected-players" name="players">
+            </div>
+
+            <button type="submit">Profil Létrehozása</button>
+        </form>
+    </div>
+
+    <!-- Modal for player selection -->
+    <div id="players-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Válassz játékosokat</h2>
+            <form id="players-form">
+                <div id="players-list">
+                    <!-- Játékosok listája itt fog megjelenni -->
+                </div>
+                <button type="button" id="save-players-btn">Kiválasztás mentése</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="{% static 'js/create_manager_profile.js' %}"></script>
+</body>
+</html>

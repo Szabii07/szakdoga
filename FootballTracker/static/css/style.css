@@ -1,7 +1,6 @@
 @import url('https://fonts.googleapis.com/css?family=Montserrat:400,800');
 
 /* sliding login page css */
-
 * {
     box-sizing: border-box;
     margin: 0;
@@ -16,6 +15,7 @@ body {
     flex-direction: column;
     font-family: 'Montserrat', sans-serif;
     height: 100vh;
+    margin: 0;
 }
 
 h1 {
@@ -24,6 +24,7 @@ h1 {
 
 h2 {
     text-align: center;
+    margin-bottom: 20px;
 }
 
 p {
@@ -47,15 +48,23 @@ a {
 
 button {
     border-radius: 20px;
-    border: 1px solid #000000;
-    background-color: #000000;
-    color: #FFFFFF;
+    border: 1px solid #000;
+    background-color: #000;
+    color: #fff;
     font-size: 12px;
     font-weight: bold;
     padding: 12px 45px;
     letter-spacing: 1px;
     text-transform: uppercase;
     transition: transform 80ms ease-in;
+}
+
+input {
+    background-color: #eee;
+    border: none;
+    padding: 12px 15px;
+    margin: 8px 0;
+    width: 100%;
 }
 
 button:active {
@@ -68,28 +77,108 @@ button:focus {
 
 button.ghost {
     background-color: transparent;
-    border-color: #FFFFFF;
+    border-color: #fff;
+}
+
+/* Form Styles */
+.profile-container {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 14px 28px rgba(0,0,0,0.25), 
+                0 10px 10px rgba(0,0,0,0.22);
+    width: 100%;
+    max-width: 600px;
+    padding: 20px;
+    margin: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 form {
-    background-color: #FFFFFF;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    padding: 0 50px;
-    height: 100%;
-    text-align: center;
-}
-
-input {
-    background-color: #eee;
-    border: none;
-    padding: 12px 15px;
-    margin: 8px 0;
     width: 100%;
 }
 
+.form-group {
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+form button {
+    margin-top: 20px;
+}
+
+/* Position Styles */
+.position-group {
+    position: relative;
+}
+
+.position-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.position-container select {
+    flex: 1;
+    padding-right: 40px; /* Make room for the info icon */
+}
+
+.info-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.info-icon img {
+    width: 20px;
+    height: 20px;
+}
+
+.info-tooltip {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    z-index: 10;
+    text-align: center;
+}
+
+.info-tooltip img {
+    width: 100%;
+    height: auto;
+}
+
+.info-icon:hover .info-tooltip {
+    display: block;
+}
+
+/* Sliding Login Page CSS */
 .container {
     background-color: #fff;
     border-radius: 10px;
@@ -143,6 +232,21 @@ input {
         opacity: 1;
         z-index: 5;
     }
+}
+
+.overlay-container {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+    transition: transform 0.6s ease-in-out;
+    z-index: 100;
+}
+
+.container.right-panel-active .overlay-container {
+    transform: translateX(-100%);
 }
 
 .overlay-container {
@@ -245,7 +349,6 @@ footer a {
     color: #3c97bf;
     text-decoration: none;
 }
-
 
 .alert {
     padding: 15px;

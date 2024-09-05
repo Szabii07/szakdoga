@@ -1,42 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <title>Profil Szerkesztése</title>
 </head>
-
 <body>
-    <div class="container">
-        <h1>Profil Szerkesztése</h1>
-        
-        <!-- Display messages -->
-        {% if messages %}
-            <div class="alert {{ messages.0.tags }}">
-                {{ messages.0 }}
-            </div>
+    <h1>Profil Szerkesztése</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        {% if player_form %}
+            {{ player_form.as_p }}
         {% endif %}
-        
-        <!-- Profile edit form -->
-        <form method="post" action="{% url 'profile_edit' %}" enctype="multipart/form-data">
-            {% csrf_token %}
-            
-            <label for="username">Felhasználónév:</label>
-            <input type="text" id="username" name="username" value="{{ form.username.value }}" required>
-            
-            <label for="email">E-mail cím:</label>
-            <input type="email" id="email" name="email" value="{{ form.email.value }}" required>
-            
-            <label for="profile_picture">Profilkép:</label>
-            <input type="file" id="profile_picture" name="profile_picture">
-            
-            <button type="submit">Mentés</button>
-        </form>
-    </div>
+        <button type="submit">Mentés</button>
+    </form>
 </body>
-
 </html>

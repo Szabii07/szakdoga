@@ -1,0 +1,11 @@
+{% if not user_profile in request.user.userprofile.following.all %}
+    <a href="{% url 'follow_user' user_profile.id %}">Követés</a>
+{% else %}
+    <a href="{% url 'unfollow_user' user_profile.id %}">Követés törlése</a>
+{% endif %}
+<h2>Kedvenc játékosok</h2>
+<ul>
+    {% for player in request.user.userprofile.favorites.all %}
+        <li>{{ player.first_name }} {{ player.last_name }}</li>
+    {% endfor %}
+</ul>

@@ -1,0 +1,84 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Játékos Profil Létrehozása</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/create_player_profile.css' %}">
+</head>
+<body>
+    <div class="profile-container">
+        <h1>Játékos Profil Létrehozása</h1>
+        
+        <form method="post" action="{% url 'create_player_profile' %}">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="birthdate">Születési idő:</label>
+                {{ form.birthdate }}
+            </div>
+            
+            <div class="form-group">
+                <label for="team">Csapatnév:</label>
+                {{ form.team }}
+            </div>
+        
+            <div class="form-group">
+                <button type="button" id="select-positions-btn">Pozíciók kiválasztása</button>
+                <input type="hidden" name="position" id="position-input" value="{{ form.position.value }}">
+                <div id="selected-positions">
+                    <strong>Pozícióid:</strong> <span id="positions-list">{{ form.position.value|default_if_none:"Nincs kiválasztva" }}</span>
+                </div>
+            </div>
+        
+            <div class="form-group">
+                <label for="preferred_foot">Milyen lábas:</label>
+                {{ form.preferred_foot }}
+            </div>
+            
+            <div class="form-group">
+                <label for="height">Magasság:</label>
+                {{ form.height }}
+            </div>
+            
+            <div class="form-group">
+                <label for="location">Tartózkodási hely:</label>
+                {{ form.location }}
+            </div>
+        
+            <div class="form-group">
+                <label for="looking_for_team">Keres csapatot?</label>
+                {{ form.looking_for_team }}
+            </div>
+        
+            <div class="form-group">
+                <label for="experience">Tapasztalat:</label>
+                {{ form.experience }}
+            </div>
+        
+            <div class="form-group">
+                <button type="submit">Profil mentése</button>
+            </div>
+        </form>
+        
+        <!-- Pozíció kiválasztás felugró ablak -->
+        <div id="positions-modal" style="display:none;">
+            <div>
+                <span class="close">&times;</span>
+                <h2>Válassz pozíciókat</h2>
+                <form id="positions-form">
+                    <div><input type="checkbox" value="GK">GK - Kapus</div>
+                    <div><input type="checkbox" value="CB">CB - Középhátvéd</div>
+                    <!-- Add more positions as needed -->
+                    <button type="submit">OK</button>
+                </form>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/create_player_profile.js' %}"></script>
+</body>
+</html>

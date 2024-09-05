@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <title>Menedzser Dashboard</title>
+</head>
+<body>
+    <div class="dashboard-container">
+        <h1>Menedzser Dashboard</h1>
+        <h2>Játékosok a felügyeleted alatt</h2>
+        <ul>
+            {% for player in players %}
+                <li>{{ player.first_name }} {{ player.last_name }} - Csapat: {{ player.team }}</li>
+            {% empty %}
+                <li>Nincsenek játékosok a felügyeleted alatt.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>

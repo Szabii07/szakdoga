@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <title>Edző Dashboard</title>
+</head>
+<body>
+    <div class="dashboard-container">
+        <h1>Edző Dashboard</h1>
+        <h2>Csapatod játékosai</h2>
+        <ul>
+            {% for player in players %}
+                <li>{{ player.first_name }} {{ player.last_name }} - Csapat: {{ player.team }}</li>
+            {% empty %}
+                <li>Nincsenek játékosok a csapatodban.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>
