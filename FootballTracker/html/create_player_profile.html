@@ -55,7 +55,12 @@
         
             <div class="form-group">
                 <label for="experience">Tapasztalat:</label>
-                {{ form.experience }}
+                <button type="button" id="add-experience-btn">Tapasztalat hozzáadása</button>
+                <ul id="experience-list">
+                    <!-- Experience items will be added here -->
+                </ul>
+                <input type="hidden" name="experience_title" id="experience-titles">
+                <input type="hidden" name="experience_description" id="experience-descriptions">
             </div>
         
             <div class="form-group">
@@ -69,16 +74,40 @@
                 <span class="close">&times;</span>
                 <h2>Válassz pozíciókat</h2>
                 <form id="positions-form">
-                    <div><input type="checkbox" value="GK">GK - Kapus</div>
-                    <div><input type="checkbox" value="CB">CB - Középhátvéd</div>
-                    <!-- Add more positions as needed -->
+                    <div class="position-option"><input type="checkbox" value="GK">GK - Kapus</div>
+                    <div class="position-option"><input type="checkbox" value="RB">RB - Jobbhátvéd</div>
+                    <div class="position-option"><input type="checkbox" value="CB">CB - Középhátvéd</div>
+                    <div class="position-option"><input type="checkbox" value="LB">LB - Balhátvéd</div>
+                    <div class="position-option"><input type="checkbox" value="CDM">CDM - Védekező középpályás</div>
+                    <div class="position-option"><input type="checkbox" value="CM">CM - Középpályás</div>
+                    <div class="position-option"><input type="checkbox" value="CAM">CAM - Támadó középpályás</div>
+                    <div class="position-option"><input type="checkbox" value="RW">RW - Jobbszélső</div>
+                    <div class="position-option"><input type="checkbox" value="LW">LW - Balszélső</div>
+                    <div class="position-option"><input type="checkbox" value="ST">ST - Csatár</div>
+                    <div class="position-option"><input type="checkbox" value="CF">CF - Középcsatár</div>
                     <button type="submit">OK</button>
                 </form>
             </div>
         </div>
+        
+        <!-- Tapasztalatok felugró ablak -->
+        <div id="experience-modal" style="display:none;">
+            <div>
+                <span class="close">&times;</span>
+                <h2>Tapasztalat hozzáadása</h2>
+                <form id="experience-form">
+                    <label for="experience-title">Cím:</label>
+                    <input type="text" id="experience-title" name="experience_title">
+                    
+                    <label for="experience-description">Leírás:</label>
+                    <textarea id="experience-description" name="experience_description"></textarea>
+                    
+                    <button type="submit">Mentés</button>
+                </form>
+            </div>
         </div>
     </div>
-
+    
     <script src="{% static 'js/create_player_profile.js' %}"></script>
 </body>
 </html>

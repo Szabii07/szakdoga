@@ -1,6 +1,20 @@
-<h1>Create a Post</h1>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Post</button>
-</form>
+{%load static%}
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Post</title>
+    <link rel="stylesheet" href="{% static 'css/create_post.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h1>Create a New Post</h1>
+        <form method="post" action="{% url 'create_post' %}">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Post</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,18 +1,21 @@
 /* Modal styles */
-#positions-modal {
+#positions-modal,
+#experience-modal {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0, 0, 0, 0.5);
 }
 
-#positions-modal > div {
+#positions-modal > div,
+#experience-modal > div {
     background-color: white;
-    margin: 15% auto;
+    margin: 10% auto;
     padding: 20px;
-    width: 50%;
+    width: 80%;
+    max-width: 600px;
 }
 
 .close {
@@ -21,6 +24,19 @@
     cursor: pointer;
 }
 
-form div {
+/* Experience section styles */
+#experience-list {
+    list-style: none;
+    padding: 0;
+}
+
+#experience-list li {
     margin-bottom: 10px;
+}
+
+.position-option {
+    display: inline-block;
+    width: 48%;
+    margin: 1%;
+    box-sizing: border-box;
 }

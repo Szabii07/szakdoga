@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import UserProfile, PlayerProfile, Coach, Manager, Post, Message
+from .models import UserProfile, PlayerProfile, Coach, Manager, Post, Message, Experience, Comment
 
 class SignupForm(UserCreationForm):
     class Meta:
@@ -40,7 +40,7 @@ class UserProfileForm(forms.ModelForm):
 class PlayerProfileForm(forms.ModelForm):
     class Meta:
         model = PlayerProfile
-        fields = ['birthdate', 'team', 'position', 'preferred_foot', 'height', 'location', 'looking_for_team', 'experience']
+        fields = ['birthdate', 'team', 'position', 'preferred_foot', 'height', 'location', 'looking_for_team']
         widgets = {
             'birthdate': forms.DateInput(attrs={'type': 'date'}),
             'position': forms.HiddenInput(),  # Rejtett mező, amit JS fog kitölteni
@@ -54,7 +54,15 @@ class PlayerProfileForm(forms.ModelForm):
             'height': 'Magasság',
             'location': 'Tartózkodási hely',
             'looking_for_team': 'Keres csapatot?',
-            'experience': 'Tapasztalatok'
+        }
+
+class ExperienceForm(forms.ModelForm):
+    class Meta:
+        model = Experience
+        fields = ['title', 'description']
+        labels = {
+            'title': 'Csapat',
+            'description': 'Elért eredmény',
         }
 
 class CoachForm(forms.ModelForm):
@@ -69,6 +77,7 @@ class CoachForm(forms.ModelForm):
             'birthdate': 'Születési idő',
             'team': 'Csapat'
         }
+
 
 class ManagerForm(forms.ModelForm):
     birthdate = forms.DateField(
@@ -88,8 +97,23 @@ class PostForm(forms.ModelForm):
     class Meta:
         model = Post
         fields = ['content']
+        labels = {
+            'content': 'Poszt tartalma'
+        }
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['content']  # Ensure 'content' matches a field in your Comment model
+        widgets = {
+            'content': forms.Textarea(attrs={'placeholder': 'Szólj hozzá...', 'rows': 3}),
+        }
 
 class MessageForm(forms.ModelForm):
     class Meta:
         model = Message
-        fields = ['receiver', 'content']
+        fields = ['recipient', 'content']
+        labels = {
+            'recipient': 'Címzett',
+            'content': 'Üzenet'
+        }
