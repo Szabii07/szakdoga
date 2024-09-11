@@ -104,7 +104,7 @@ class PostForm(forms.ModelForm):
 class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
-        fields = ['content']  # Ensure 'content' matches a field in your Comment model
+        fields = ['content']
         widgets = {
             'content': forms.Textarea(attrs={'placeholder': 'Szólj hozzá...', 'rows': 3}),
         }

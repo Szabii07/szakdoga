@@ -65,7 +65,7 @@ class Coach(models.Model):
     qualifications = models.TextField()
 
     def __str__(self):
-        return self.user.user.username
+        return f'{self.user.first_name} {self.user.last_name}'
     
 class Manager(models.Model):
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)

@@ -3,6 +3,7 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.db import IntegrityError
+from django.db.models import Q
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponseForbidden
 from django.db.models.signals import post_save
@@ -221,40 +222,93 @@ def player_dashboard(request):
 
 @login_required
 def coach_dashboard(request):
-    # Get filter parameters from request
-    user_type = request.GET.get('user_type')
-    min_height = request.GET.get('min_height')
-    max_height = request.GET.get('max_height')
-    min_birth_date = request.GET.get('min_birth_date')
-    max_birth_date = request.GET.get('max_birth_date')
-    looking_for_team = request.GET.get('looking_for_team')
-
-    # Filter users based on parameters
-    player_profiles = PlayerProfile.objects.all()
-
-    if min_height and max_height:
-        player_profiles = player_profiles.filter(height__gte=min_height, height__lte=max_height)
-    if min_birth_date and max_birth_date:
-        player_profiles = player_profiles.filter(birthdate__gte=min_birth_date, birthdate__lte=max_birth_date)
-    if looking_for_team:
-        player_profiles = player_profiles.filter(looking_for_team=looking_for_team)
-
-    if user_type == 'player':
-        player_profiles = player_profiles
-    elif user_type == 'coach':
-        player_profiles = PlayerProfile.objects.none()  # Or filter coaches if you have a separate CoachProfile
-    elif user_type == 'manager':
-        player_profiles = PlayerProfile.objects.none()  # Or filter managers if you have a separate ManagerProfile
-
-    # Get posts and messages
     posts = Post.objects.all().order_by('-created_at')
-    messages = Message.objects.filter(recipient=request.user)
+    user_type = request.GET.get('user_type')
+    
+    # Handle filtering based on user type
+    if user_type:
+        if user_type == 'player':
+            min_height = request.GET.get('min_height')
+            max_height = request.GET.get('max_height')
+            min_birth_date = request.GET.get('min_birth_date')
+            max_birth_date = request.GET.get('max_birth_date')
+            position = request.GET.get('position')
+            looking_for_team = request.GET.get('looking_for_team')
 
-    context = {
-        'player_profiles': player_profiles,
+            players = PlayerProfile.objects.all()
+            
+            if min_height:
+                players = players.filter(height__gte=min_height)
+            if max_height:
+                players = players.filter(height__lte=max_height)
+            if min_birth_date:
+                players = players.filter(birthdate__gte=min_birth_date)
+            if max_birth_date:
+                players = players.filter(birthdate__lte=max_birth_date)
+            if position:
+                players = players.filter(position=position)
+            if looking_for_team:
+                players = players.filter(looking_for_team=True)
+                
+            context = {
+                'players': players,
+                'post_form': PostForm(),
+                'comment_form': CommentForm()
+            }
+        elif user_type == 'coach':
+            coaches = Coach.objects.all()
+            context = {
+                'coaches': coaches,
+                'post_form': PostForm(),
+                'comment_form': CommentForm()
+            }
+        elif user_type == 'manager':
+            managers = Manager.objects.all()
+            context = {
+                'managers': managers,
+                'post_form': PostForm(),
+                'comment_form': CommentForm()
+            }
+        else:
+            context = {
+                'posts': posts,
+                'post_form': PostForm(),
+                'comment_form': CommentForm()
+            }
+    else:
+        context = {
+            'posts': posts,
+            'post_form': PostForm(),
+            'comment_form': CommentForm()
+        }
+
+    if request.method == 'POST':
+        if 'post_content' in request.POST:
+            form = PostForm(request.POST, request.FILES)
+            if form.is_valid():
+                new_post = form.save(commit=False)
+                new_post.user = request.user
+                new_post.save()
+                return redirect('coach_dashboard')
+        elif 'comment_content' in request.POST:
+            post_id = request.POST.get('post_id')
+            post = Post.objects.get(id=post_id)
+            form = CommentForm(request.POST)
+            if form.is_valid():
+                new_comment = form.save(commit=False)
+                new_comment.post = post
+                new_comment.user = request.user
+                new_comment.save()
+                return redirect('coach_dashboard')
+    else:
+        post_form = PostForm()
+        comment_form = CommentForm()
+    
+    context.update({
         'posts': posts,
-        'messages': messages
-    }
+        'post_form': post_form,
+        'comment_form': comment_form
+    })
     
     return render(request, 'coach_dashboard.html', context)
 

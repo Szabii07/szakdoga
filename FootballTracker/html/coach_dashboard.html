@@ -1,4 +1,4 @@
-{% load static %}
+{%load static%}
 <!DOCTYPE html>
 <html lang="hu">
 <head>
@@ -29,79 +29,110 @@
             <div class="filters">
                 <h3>Szűrők</h3>
                 <form method="GET" action="{% url 'coach_dashboard' %}">
-                    <!-- Filters form here -->
-                    <!-- As previously defined -->
+                    <label for="user_type">Felhasználó típusa:</label>
+                    <select name="user_type" id="user_type">
+                        <option value="">--Válassz--</option>
+                        <option value="player" {% if request.GET.user_type == 'player' %}selected{% endif %}>Játékos</option>
+                        <option value="coach" {% if request.GET.user_type == 'coach' %}selected{% endif %}>Edző</option>
+                        <option value="manager" {% if request.GET.user_type == 'manager' %}selected{% endif %}>Menedzser</option>
+                    </select>
+
+                    <!-- Player-specific filters -->
+                    {% if request.GET.user_type == 'player' %}
+                    <label for="min_height">Min. Magasság:</label>
+                    <input type="number" name="min_height" id="min_height" value="{{ request.GET.min_height }}">
+
+                    <label for="max_height">Max. Magasság:</label>
+                    <input type="number" name="max_height" id="max_height" value="{{ request.GET.max_height }}">
+
+                    <label for="min_birth_date">Születési idő (min):</label>
+                    <input type="date" name="min_birth_date" id="min_birth_date" value="{{ request.GET.min_birth_date }}">
+
+                    <label for="max_birth_date">Születési idő (max):</label>
+                    <input type="date" name="max_birth_date" id="max_birth_date" value="{{ request.GET.max_birth_date }}">
+
+                    <label for="position">Poszt:</label>
+                    <select name="position" id="position">
+                        <option value="">--Válassz--</option>
+                        <option value="GK" {% if request.GET.position == 'GK' %}selected{% endif %}>Kapus</option>
+                        <option value="RB" {% if request.GET.position == 'RB' %}selected{% endif %}>Jobbhátvéd</option>
+                        <option value="CB" {% if request.GET.position == 'CB' %}selected{% endif %}>Középhátvéd</option>
+                        <option value="LB" {% if request.GET.position == 'LB' %}selected{% endif %}>Balhátvéd</option>
+                        <option value="CDM" {% if request.GET.position == 'CDM' %}selected{% endif %}>Védekező középpályás</option>
+                        <option value="CM" {% if request.GET.position == 'CM' %}selected{% endif %}>Középpályás</option>
+                        <option value="CAM" {% if request.GET.position == 'CAM' %}selected{% endif %}>Támadó középpályás</option>
+                        <option value="RW" {% if request.GET.position == 'RW' %}selected{% endif %}>Jobbszélső</option>
+                        <option value="LW" {% if request.GET.position == 'LW' %}selected{% endif %}>Balszélső</option>
+                        <option value="ST" {% if request.GET.position == 'ST' %}selected{% endif %}>Csatár</option>
+                        <option value="CF" {% if request.GET.position == 'CF' %}selected{% endif %}>Középcsatár</option>
+                    </select>
+
+                    <label for="looking_for_team">Keres csapatot:</label>
+                    <input type="checkbox" name="looking_for_team" id="looking_for_team" value="True" {% if request.GET.looking_for_team %}checked{% endif %}>
+
+                    {% endif %}
+                    
+                    <button type="submit">Szűrés</button>
                 </form>
             </div>
 
-            <!-- Center: Posts -->
+            <!-- Center: Users or Posts -->
             <div class="posts">
+                {% if request.GET.user_type == 'player' %}
+                <h3>Játékosok</h3>
+                <ul>
+                    {% for player in players %}
+                    <li>{{ player.user_profile.user.username }} - {{ player.position }} - {{ player.height }} cm</li>
+                    {% empty %}
+                    <li>Nincsenek játékosok a megadott szűrőkkel.</li>
+                    {% endfor %}
+                </ul>
+                {% elif request.GET.user_type == 'coach' %}
+                <h3>Edzők</h3>
+                <ul>
+                    {% for coach in coaches %}
+                    <li>{{ coach.user.first_name }} {{ coach.user.last_name }} - {{ coach.team }}</li>
+                    {% empty %}
+                    <li>Nincsenek edzők a megadott szűrőkkel.</li>
+                    {% endfor %}
+                </ul>
+                {% elif request.GET.user_type == 'manager' %}
+                <h3>Menedzserek</h3>
+                <ul>
+                    {% for manager in managers %}
+                    <li>{{ manager.user.username }} - {{ manager.company }}</li>
+                    {% empty %}
+                    <li>Nincsenek menedzserek a megadott szűrőkkel.</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
                 <h3>Posztok</h3>
-                <div class="post-form">
-                    <form method="POST" action="{% url 'create_post' %}" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        <textarea name="content" placeholder="Írj egy posztot..." required></textarea>
-                        <input type="file" name="image" accept="image/*">
-                        <button type="submit">Post</button>
-                    </form>
-                </div>
                 {% for post in posts %}
                 <div class="post">
-                    <div class="post-header">
-                        <strong>{{ post.user.username }}</strong> - {{ post.created_at|date:"Y-m-d H:i" }}
-                    </div>
-                    <div class="post-content">
-                        <p>{{ post.content }}</p>
-                        {% if post.image %}
-                        <img src="{{ post.image.url }}" alt="Post image" style="max-width: 100%; height: auto;">
-                        {% endif %}
-                    </div>
-                    <div class="post-actions">
-                        <form method="POST" action="{% url 'like_post' post.id %}" class="like-form">
-                            {% csrf_token %}
-                            <button type="submit" class="like-button" data-post-id="{{ post.id }}">Like</button>
-                            <span id="like-count-{{ post.id }}">{{ post.get_likes_count }}</span>
-                        </form>
-                        <form method="POST" action="{% url 'dislike_post' post.id %}" class="dislike-form">
-                            {% csrf_token %}
-                            <button type="submit" class="dislike-button" data-post-id="{{ post.id }}">Dislike</button>
-                            <span id="dislike-count-{{ post.id }}">{{ post.get_dislikes_count }}</span>
-                        </form>
-                    </div>
-                    <div class="comments-section">
-                        <h4>Hozzászólások:</h4>
-                        <div class="comment-list" id="comments-{{ post.id }}">
-                            {% for comment in post.comments.all %}
-                            <div class="comment">
-                                <strong>{{ comment.user.username }}:</strong> {{ comment.content }} <em>({{ comment.created_at|date:"Y-m-d H:i" }})</em>
-                            </div>
-                            {% endfor %}
-                        </div>
-                        <form class="comment-form" method="POST" data-post-id="{{ post.id }}">
-                            {% csrf_token %}
-                            <textarea name="content" placeholder="Add a comment..." required></textarea>
-                            <button type="submit">Add Comment</button>
-                        </form>
-                    </div>
+                    <p>{{ post.content }}</p>
+                    <form method="POST" action="{% url 'add_comment' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="post_id" value="{{ post.id }}">
+                        {{ comment_form.as_p }}
+                        <button type="submit">Komment</button>
+                    </form>
                 </div>
+                {% empty %}
+                <p>Nincsenek posztok.</p>
                 {% endfor %}
+                {% endif %}
             </div>
 
             <!-- Right Side: Messages -->
             <div class="messages">
                 <h3>Üzenetek</h3>
-                {% for message in messages %}
-                <div class="message">
-                    <strong>{{ message.sender.username }}:</strong> {{ message.content }} <em>({{ message.created_at|date:"Y-m-d H:i" }})</em>
-                </div>
-                {% endfor %}
-                <div class="message-form">
-                    <form method="POST" action="{% url 'send_message' %}">
-                        {% csrf_token %}
-                        <textarea name="content" placeholder="Write a message..." required></textarea>
-                        <button type="submit">Send</button>
-                    </form>
-                </div>
+                <ul>
+                    {% for message in request.user.messages.all %}
+                    <li>{{ message.sender }}: {{ message.content }}</li>
+                    {% empty %}
+                    <li>Nincsenek üzenetek.</li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
     </main>
