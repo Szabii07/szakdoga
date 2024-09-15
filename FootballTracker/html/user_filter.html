@@ -1,0 +1,124 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Felhasználók Szűrése</title>
+    <link rel="stylesheet" href="{% static 'css/user_filter.css' %}">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="profile-info">
+                <a href="{% url 'profile_edit' %}" class="profile-link">
+                    <img src="{% if user.userprofile.avatar %}{{ user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="User Avatar">
+                    <span>{{ request.user.username }}</span>
+                </a>
+            </div>
+            <nav class="header-nav">
+                <a href="{% url 'messages' user_id=request.user.id %}">Üzenetek</a>
+                <a href="{% url 'dashboard_redirect' %}">Posztok</a>
+                <a href="{% url 'user_filter' %}">Felhasználók Szűrése</a>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <h1>Felhasználók szűrése</h1>
+        <form method="GET" action="{% url 'user_filter' %}">
+            <label for="user_type">Felhasználó típusa:</label>
+            <select name="user_type" id="user_type">
+                <option value="">--Válassz--</option>
+                <option value="player" {% if request.GET.user_type == 'player' %}selected{% endif %}>Játékos</option>
+                <option value="coach" {% if request.GET.user_type == 'coach' %}selected{% endif %}>Edző</option>
+                <option value="manager" {% if request.GET.user_type == 'manager' %}selected{% endif %}>Menedzser</option>
+            </select>
+
+            <!-- Additional filters for players -->
+            <div id="player-filters" class="additional-filters" style="display: {% if request.GET.user_type == 'player' %}block{% else %}none{% endif %};">
+                <label for="min_height">Min. Magasság:</label>
+                <input type="number" name="min_height" id="min_height" value="{{ request.GET.min_height }}">
+
+                <label for="max_height">Max. Magasság:</label>
+                <input type="number" name="max_height" id="max_height" value="{{ request.GET.max_height }}">
+
+                <label for="min_birth_date">Születési idő (min):</label>
+                <input type="date" name="min_birth_date" id="min_birth_date" value="{{ request.GET.min_birth_date }}">
+
+                <label for="max_birth_date">Születési idő (max):</label>
+                <input type="date" name="max_birth_date" id="max_birth_date" value="{{ request.GET.max_birth_date }}">
+
+                <label for="position">Poszt:</label>
+                <select name="position" id="position">
+                    <option value="">--Válassz--</option>
+                    <option value="GK" {% if request.GET.position == 'GK' %}selected{% endif %}>Kapus</option>
+                    <option value="RB" {% if request.GET.position == 'RB' %}selected{% endif %}>Jobbhátvéd</option>
+                    <option value="CB" {% if request.GET.position == 'CB' %}selected{% endif %}>Középhátvéd</option>
+                    <option value="LB" {% if request.GET.position == 'LB' %}selected{% endif %}>Balhátvéd</option>
+                    <option value="CDM" {% if request.GET.position == 'CDM' %}selected{% endif %}>Védekező középpályás</option>
+                    <option value="CM" {% if request.GET.position == 'CM' %}selected{% endif %}>Középpályás</option>
+                    <option value="CAM" {% if request.GET.position == 'CAM' %}selected{% endif %}>Támadó középpályás</option>
+                    <option value="RW" {% if request.GET.position == 'RW' %}selected{% endif %}>Jobbszélső</option>
+                    <option value="LW" {% if request.GET.position == 'LW' %}selected{% endif %}>Balszélső</option>
+                    <option value="ST" {% if request.GET.position == 'ST' %}selected{% endif %}>Csatár</option>
+                    <option value="CF" {% if request.GET.position == 'CF' %}selected{% endif %}>Középcsatár</option>
+                </select>
+
+                <label for="looking_for_team">Keres csapatot:</label>
+                <select name="looking_for_team" id="looking_for_team">
+                    <option value="">--Válassz--</option>
+                    <option value="True" {% if request.GET.looking_for_team == 'True' %}selected{% endif %}>Igen</option>
+                    <option value="False" {% if request.GET.looking_for_team == 'False' %}selected{% endif %}>Nem</option>
+                </select>
+            </div>
+
+            <button type="submit">Szűrés</button>
+        </form>
+
+        <!-- Display filtered users -->
+        <div class="user-grid">
+            {% if players %}
+                {% for player in players %}
+                    <a href="{% url 'profile_detail' player.user_profile.id %}" class="user-card">
+                        <img src="{% if user.userprofile.avatar %}{{ user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="User Avatar">
+                        <div class="details">
+                            <h3>{{ player.user_profile.first_name }} {{ player.user_profile.last_name }}</h3>
+                            <p>Magasság: {{ player.height }} cm</p>
+                            <p>Poszt: {{ player.position }}</p>
+                            <p>Születési idő: {{ player.birthdate }}</p>
+                            <p>Keres csapatot: {{ player.looking_for_team|yesno:"Igen, Nem" }}</p>
+                        </div>
+                    </a>
+                {% empty %}
+                    <p>Nincsenek találatok.</p>
+                {% endfor %}
+            {% elif coaches %}
+                {% for coach in coaches %}
+                    <a href="{% url 'profile_detail' coach.user.id %}" class="user-card">
+                        <img src="{% if user.userprofile.avatar %}{{ user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="User Avatar">
+                        <div class="details">
+                            <h3>{{ coach.user.first_name }} {{ coach.user.last_name }}</h3>
+                            <p>Csapat: {{ coach.team }}</p>
+                            <p>Minősítések: {{ coach.qualifications }}</p>
+                        </div>
+                    </a>
+                {% empty %}
+                    <p>Nincsenek találatok.</p>
+                {% endfor %}
+            {% elif managers %}
+                {% for manager in managers %}
+                    <a href="{% url 'profile_detail' manager.user.id %}" class="user-card">
+                        <img src="{% if user.userprofile.avatar %}{{ user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="User Avatar">
+                        <div class="details">
+                            <h3>{{ manager.user.first_name }} {{ manager.user.last_name }}</h3>
+                            <p>Csapat: {{ manager.team }}</p>
+                        </div>
+                    </a>
+                {% empty %}
+                    <p>Nincsenek találatok.</p>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>

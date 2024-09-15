@@ -12,7 +12,7 @@
     <div class="profile-container">
         <h1>Játékos Profil Létrehozása</h1>
         
-        <form method="post" action="{% url 'create_player_profile' %}">
+        <form method="post" action="{% url 'create_player_profile' %}" enctype="multipart/form-data">
             {% csrf_token %}
             
             <div class="form-group">
@@ -32,7 +32,7 @@
                     <strong>Pozícióid:</strong> <span id="positions-list">{{ form.position.value|default_if_none:"Nincs kiválasztva" }}</span>
                 </div>
             </div>
-        
+            
             <div class="form-group">
                 <label for="preferred_foot">Milyen lábas:</label>
                 {{ form.preferred_foot }}

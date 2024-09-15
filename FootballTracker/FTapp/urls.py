@@ -23,12 +23,11 @@ from . import views
 urlpatterns = [
     path('', views.index_view, name='index'),
     path('profile/edit/', views.profile_edit_view, name='profile_edit'),
-    path('profile/<int:user_id>/', views.view_profile, name='view_profile'),
+    path('profile/<int:user_id>/', views.profile_detail, name='profile_detail'),
     path('create_user_profile/', views.create_user_profile, name='create_user_profile'),
     path('create_player_profile/', views.create_player_profile, name='create_player_profile'),
     path('create_coach_profile/', views.create_coach_profile, name='create_coach_profile'),
     path('create_manager_profile/', views.create_manager_profile_view, name='create_manager_profile'),
-    path('dashboard/', views.dashboard, name='dashboard'),
     path('follow/<int:user_id>/', views.follow_user, name='follow_user'),
     path('follow_player/<int:player_id>/', views.follow_user, name='follow_player'),
     path('player_dashboard/', views.player_dashboard, name='player_dashboard'),
@@ -40,7 +39,13 @@ urlpatterns = [
     path('dislike_post/<int:post_id>/', views.dislike_post, name='dislike_post'),
     path('add_comment/<int:post_id>/', views.add_comment, name='add_comment'),
     path('messages/<int:user_id>/', views.messages_view, name='messages'),
+    path('user_filter/', views.user_filter, name='user_filter'),
+    path('create_post_player/', views.create_post_player, name='create_post_player'),
+    path('dashboard_redirect/', views.redirect_to_dashboard, name='dashboard_redirect'),
+
+
     ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

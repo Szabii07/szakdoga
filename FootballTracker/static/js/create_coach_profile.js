@@ -1,50 +1,39 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Modal és gombok elemek
-    var qualificationModal = document.getElementById("qualification-modal");
-    var addQualificationBtn = document.getElementById("add-qualification-btn");
-    var qualificationClose = document.querySelector(".close[data-modal='qualification-modal']");
-    var qualificationForm = document.getElementById("qualification-form");
-    var qualificationsDisplay = document.getElementById("qualifications-display");
+    const addQualificationBtn = document.getElementById('add-qualification-btn');
+    const qualificationInput = document.getElementById('qualification');
+    const qualificationsList = document.getElementById('qualifications-list');
+    const qualificationsInput = document.getElementById('qualifications-input');
 
-    // Modal megnyitása
-    addQualificationBtn.onclick = function() {
-        qualificationModal.style.display = "block";
-    }
-
-    // Modal bezárása
-    qualificationClose.onclick = function() {
-        qualificationModal.style.display = "none";
-    }
-
-    // Modal bezárása kattintásra az ablakon kívül
-    window.onclick = function(event) {
-        if (event.target == qualificationModal) {
-            qualificationModal.style.display = "none";
-        }
-    }
-
-    // Képesítés űrlap beküldése
-    qualificationForm.onsubmit = function(event) {
-        event.preventDefault();
-        var qualification = document.getElementById("qualification").value.trim();
-        
+    // Képesítések hozzáadása
+    addQualificationBtn.addEventListener('click', function() {
+        const qualification = qualificationInput.value.trim();
         if (qualification) {
-            var qualificationItems = qualificationsDisplay.getElementsByClassName("qualification-item");
-            if (qualificationItems.length >= 10) {
-                alert("Maximum 10 képesítés adható hozzá.");
-                return;
-            }
+            // Új képesítés hozzáadása a listához
+            const listItem = document.createElement('li');
+            listItem.className = 'qualification-item'; // Stílus osztály hozzáadása
+            listItem.textContent = qualification;
 
-            var newQualification = document.createElement("div");
-            newQualification.classList.add("qualification-item");
-            newQualification.textContent = `Képesítés: ${qualification}`;
-            qualificationsDisplay.appendChild(newQualification);
+            // Eltávolító gomb
+            const removeBtn = document.createElement('button');
+            removeBtn.textContent = "×";
+            removeBtn.className = 'remove-btn'; // Stílus osztály hozzáadása
+            removeBtn.onclick = function() {
+                listItem.remove();
+                updateQualificationsInput();
+            };
 
-            // űrlap törlése és modal bezárása
-            qualificationForm.reset();
-            qualificationModal.style.display = "none";
-        } else {
-            alert("Kérlek töltsd ki a képesítés mezőt.");
+            listItem.appendChild(removeBtn);
+            qualificationsList.appendChild(listItem);
+
+            // Töröljük a bemeneti mezőt
+            qualificationInput.value = '';
+            updateQualificationsInput();
         }
+    });
+
+    function updateQualificationsInput() {
+        const qualifications = Array.from(qualificationsList.querySelectorAll('li'))
+                                    .map(li => li.textContent.replace('×', '').trim());
+        qualificationsInput.value = qualifications.join(',');
     }
 });

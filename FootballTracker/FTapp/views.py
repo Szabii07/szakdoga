@@ -1,13 +1,14 @@
+from django.forms import ValidationError
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import authenticate, login as auth_login
 from django.contrib.auth.decorators import login_required
+from .decorators import role_required
 from django.views.decorators.http import require_POST
-from django.db import IntegrityError
 from django.db.models import Q
 from django.contrib import messages
-from django.http import JsonResponse, HttpResponseForbidden
+from django.http import JsonResponse
 from django.db.models.signals import post_save
-from .forms import SignupForm, LoginForm, UserProfileForm, CoachForm, ManagerForm, PostForm, MessageForm, PlayerProfileForm, ExperienceForm, CommentForm
+from .forms import SignupForm, LoginForm, UserProfileForm, CoachForm, ManagerForm, PostForm, PlayerProfileForm, CommentForm
 from .models import Dislike, Follow, Like, UserProfile, PlayerProfile, Coach, Manager, Post, Message, Experience, Comment
 
 
@@ -17,25 +18,34 @@ def index_view(request):
 
     if request.method == "POST":
         if 'signup' in request.POST:
-            signup_form = SignupForm(request.POST)  # Initialize with POST data
+            signup_form = SignupForm(request.POST)  # Handle signup form
             if signup_form.is_valid():
                 user = signup_form.save()
-                login(request, user)
+                auth_login(request, user)
                 messages.success(request, 'Sikeres regisztráció! Kérlek, szerkeszd a profilodat.')
                 return redirect('create_user_profile')
             else:
                 messages.error(request, 'Sikertelen regisztráció. Kérlek, ellenőrizd az adatokat.')
+
         elif 'login' in request.POST:
-            login_form = LoginForm(request.POST)  # Initialize with POST data
+            login_form = LoginForm(request, data=request.POST)  # Handle login form
             if login_form.is_valid():
-                username = login_form.cleaned_data['username']
-                password = login_form.cleaned_data['password']
-                user = authenticate(username=username, password=password)
-                if user is not None:
-                    login(request, user)
-                    return redirect('dashboard')
-                else:
-                    messages.error(request, 'Hibás bejelentkezési adatok.')
+                user = login_form.get_user()
+                auth_login(request, user)
+                try:
+                    profile = UserProfile.objects.get(user=user)
+                    role = profile.role
+                    if role == 'player':
+                        return redirect('player_dashboard')
+                    elif role == 'coach':
+                        return redirect('coach_dashboard')
+                    elif role == 'manager':
+                        return redirect('manager_dashboard')
+                except UserProfile.DoesNotExist:
+                    messages.error(request, 'Profil nem található.')
+                    return redirect('create_user_profile')
+            else:
+                messages.error(request, 'Hibás bejelentkezési adatok.')
 
     return render(request, 'index.html', {
         'signup_form': signup_form,
@@ -50,11 +60,11 @@ def profile_edit_view(request):
 
     if request.method == 'POST':
         if user_profile.role == 'player':
-            form = PlayerProfileForm(request.POST, instance=user_profile.playerprofile)
+            form = PlayerProfileForm(request.POST, request.FILES, instance=user_profile.playerprofile)
         elif user_profile.role == 'coach':
-            form = CoachForm(request.POST, instance=user_profile.coach)
+            form = CoachForm(request.POST, request.FILES, instance=user_profile.coach)
         elif user_profile.role == 'manager':
-            form = ManagerForm(request.POST, instance=user_profile.manager)
+            form = ManagerForm(request.POST, request.FILES, instance=user_profile.manager)
         
         if form and form.is_valid():
             form.save()
@@ -76,9 +86,8 @@ def profile_edit_view(request):
 @login_required
 def create_user_profile(request):
     if request.method == 'POST':
-        form = UserProfileForm(request.POST)
+        form = UserProfileForm(request.POST, request.FILES)  # Include request.FILES for file uploads
         if form.is_valid():
-            # Create or update the user profile
             user = request.user
             user_profile, created = UserProfile.objects.get_or_create(user=user)
             if created:
@@ -98,20 +107,17 @@ def create_user_profile(request):
                 return redirect('create_manager_profile')
             else:
                 return redirect('dashboard')  # Fallback if role is not recognized
-
     else:
         form = UserProfileForm()
 
     return render(request, 'create_user_profile.html', {'form': form})
 
 
+@role_required('player')
 @login_required
 def create_player_profile(request):
     if request.method == 'POST':
-        # Ellenőrizd a POST adatok
-        print("POST adatok:", request.POST)
-        
-        profile_form = PlayerProfileForm(request.POST)
+        profile_form = PlayerProfileForm(request.POST, request.FILES)
         if profile_form.is_valid():
             player_profile = profile_form.save(commit=False)
             try:
@@ -119,6 +125,10 @@ def create_player_profile(request):
             except UserProfile.DoesNotExist:
                 messages.error(request, "Nincs felhasználói profil.")
                 return redirect('create_player_profile')
+            
+            # Handle positions
+            positions = request.POST.get('position', '').split(',')
+            player_profile.position = ','.join(positions)  # Save as comma-separated string
             player_profile.save()
             
             # Handle experiences (if any)
@@ -140,9 +150,9 @@ def create_player_profile(request):
     
     return render(request, 'create_player_profile.html', {'form': profile_form})
 
+@role_required('coach')
 @login_required
 def create_coach_profile(request):
-    # Ellenőrizzük, hogy létezik-e UserProfile a jelenlegi felhasználóhoz
     user_profile = get_object_or_404(UserProfile, user=request.user)
     
     if request.method == 'POST':
@@ -151,18 +161,14 @@ def create_coach_profile(request):
             coach = form.save(commit=False)
             coach.user = user_profile
             try:
-                # Ellenőrizzük, hogy létezik-e már coach profil
                 existing_coach = Coach.objects.get(user=user_profile)
-                # Ha létezik, frissítjük
                 coach.id = existing_coach.id
             except Coach.DoesNotExist:
-                # Ha nem létezik, új létrehozás
                 pass
             coach.save()
             messages.success(request, 'Coach profile created/updated successfully!')
             return redirect('coach_dashboard')
     else:
-        # Töltse be a formot az esetleges meglévő adatokkal
         try:
             existing_coach = Coach.objects.get(user=user_profile)
             form = CoachForm(instance=existing_coach)
@@ -171,6 +177,9 @@ def create_coach_profile(request):
 
     return render(request, 'create_coach_profile.html', {'form': form})
 
+
+
+@role_required('manager')
 @login_required
 def create_manager_profile_view(request):
     if request.method == 'POST':
@@ -186,45 +195,78 @@ def create_manager_profile_view(request):
     players = PlayerProfile.objects.all()
     return render(request, 'create_manager_profile.html', {'form': form, 'players': players})
 
+@role_required('player')
 @login_required
 def player_dashboard(request):
-    user_profile = UserProfile.objects.get(user=request.user)
-    posts = Post.objects.filter(user_profile=user_profile).order_by('-created_at')
-    following_profiles = user_profile.following.all()
+    try:
+        # Get the UserProfile associated with the current user
+        user_profile = UserProfile.objects.get(user=request.user)
+        
+        # Get the PlayerProfile associated with the UserProfile
+        player_profile = PlayerProfile.objects.get(user_profile=user_profile)
+        
+        # Get posts related to the current player
+        posts = Post.objects.filter(user=player_profile.user_profile.user).order_by('-created_at')
+        
+    except UserProfile.DoesNotExist:
+        messages.error(request, "Nincs felhasználói profil.")
+        return redirect('create_user_profile')  
     
+    except PlayerProfile.DoesNotExist:
+        messages.error(request, "Nincs játékos profil.")
+        return redirect('create_player_profile')
+    
+    # Handle post requests for creating posts and comments
     if request.method == 'POST':
-        if 'post' in request.POST:
-            form = PostForm(request.POST)
+        if 'post_content' in request.POST:
+            form = PostForm(request.POST, request.FILES)
             if form.is_valid():
-                post = form.save(commit=False)
-                post.user_profile = user_profile
-                post.save()
+                new_post = form.save(commit=False)
+                new_post.user = request.user  # Set the user to the current logged-in user
+                new_post.save()
                 return redirect('player_dashboard')
-        elif 'message' in request.POST:
-            form = MessageForm(request.POST)
+        elif 'comment_content' in request.POST:
+            post_id = request.POST.get('post_id')
+            try:
+                post = Post.objects.get(id=post_id)
+            except Post.DoesNotExist:
+                messages.error(request, "Post not found.")
+                return redirect('player_dashboard')
+                
+            form = CommentForm(request.POST)
             if form.is_valid():
-                message = form.save(commit=False)
-                message.sender = user_profile
-                message.save()
+                new_comment = form.save(commit=False)
+                new_comment.post = post
+                new_comment.user = request.user
+                new_comment.save()
                 return redirect('player_dashboard')
+    
     else:
         post_form = PostForm()
-        message_form = MessageForm()
-
+        comment_form = CommentForm()
+    
     context = {
         'posts': posts,
-        'following_profiles': following_profiles,
         'post_form': post_form,
-        'message_form': message_form
+        'comment_form': comment_form
     }
     
     return render(request, 'player_dashboard.html', context)
 
+
+
+@role_required('coach')
 @login_required
 def coach_dashboard(request):
     posts = Post.objects.all().order_by('-created_at')
     user_type = request.GET.get('user_type')
-    
+
+    # Get user avatar URL
+    if hasattr(request.user, 'profile'):
+        user_avatar_url = request.user.profile.avatar.url
+    else:
+        user_avatar_url = '{% static "avatars/default_avatar.png" %}'
+
     # Handle filtering based on user type
     if user_type:
         if user_type == 'player':
@@ -236,7 +278,8 @@ def coach_dashboard(request):
             looking_for_team = request.GET.get('looking_for_team')
 
             players = PlayerProfile.objects.all()
-            
+
+            # Apply filters
             if min_height:
                 players = players.filter(height__gte=min_height)
             if max_height:
@@ -249,9 +292,10 @@ def coach_dashboard(request):
                 players = players.filter(position=position)
             if looking_for_team:
                 players = players.filter(looking_for_team=True)
-                
+
             context = {
                 'players': players,
+                'posts': posts,
                 'post_form': PostForm(),
                 'comment_form': CommentForm()
             }
@@ -259,6 +303,7 @@ def coach_dashboard(request):
             coaches = Coach.objects.all()
             context = {
                 'coaches': coaches,
+                'posts': posts,
                 'post_form': PostForm(),
                 'comment_form': CommentForm()
             }
@@ -266,6 +311,7 @@ def coach_dashboard(request):
             managers = Manager.objects.all()
             context = {
                 'managers': managers,
+                'posts': posts,
                 'post_form': PostForm(),
                 'comment_form': CommentForm()
             }
@@ -282,6 +328,7 @@ def coach_dashboard(request):
             'comment_form': CommentForm()
         }
 
+    # Handle post requests for creating posts and comments
     if request.method == 'POST':
         if 'post_content' in request.POST:
             form = PostForm(request.POST, request.FILES)
@@ -303,38 +350,144 @@ def coach_dashboard(request):
     else:
         post_form = PostForm()
         comment_form = CommentForm()
-    
+
     context.update({
         'posts': posts,
         'post_form': post_form,
         'comment_form': comment_form
     })
-    
+
     return render(request, 'coach_dashboard.html', context)
 
 
+
 @login_required
-def dashboard(request):
+def user_filter(request):
+    user_type = request.GET.get('user_type')
+    players = PlayerProfile.objects.all()
+    coaches = Coach.objects.all()
+    managers = Manager.objects.all()
+    
+    if user_type == 'player':
+        min_height = request.GET.get('min_height')
+        max_height = request.GET.get('max_height')
+        min_birth_date = request.GET.get('min_birth_date')
+        max_birth_date = request.GET.get('max_birth_date')
+        position = request.GET.get('position')
+        preferred_foot = request.GET.get('preferred_foot')
+        location = request.GET.get('location')
+        looking_for_team = request.GET.get('looking_for_team')
+
+        if min_height:
+            players = players.filter(height__gte=min_height)
+        if max_height:
+            players = players.filter(height__lte=max_height)
+        if min_birth_date:
+            players = players.filter(birthdate__gte=min_birth_date)
+        if max_birth_date:
+            players = players.filter(birthdate__lte=max_birth_date)
+        if position:
+            position_filter = Q()
+            positions = position.split(',')
+            for pos in positions:
+                position_filter |= Q(position__icontains=pos)
+            players = players.filter(position_filter)
+        if preferred_foot:
+            players = players.filter(preferred_foot=preferred_foot)
+        if location:
+            players = players.filter(location__icontains=location)
+        if looking_for_team:
+            players = players.filter(looking_for_team=looking_for_team)
+        
+        context = {
+            'players': players,
+            'coaches': None,
+            'managers': None,
+        }
+    elif user_type == 'coach':
+        context = {
+            'players': None,
+            'coaches': coaches,
+            'managers': None,
+        }
+    elif user_type == 'manager':
+        context = {
+            'players': None,
+            'coaches': None,
+            'managers': managers,
+        }
+    else:
+        context = {
+            'players': None,
+            'coaches': None,
+            'managers': None,
+        }
+    
+    return render(request, 'user_filter.html', context)
+
+
+
+@login_required
+def redirect_to_dashboard(request):
     user_profile = request.user.userprofile
     if user_profile.role == 'player':
-        followed_users = user_profile.following.all()
-        posts = Post.objects.filter(author__in=followed_users).order_by('-created_at')
-        return render(request, 'player_dashboard.html', {'posts': posts})
+        return redirect('player_dashboard')
     elif user_profile.role == 'coach':
-        players = UserProfile.objects.filter(role='coach')
-        posts = Post.objects.all()
-        return render(request, 'coach_dashboard.html', {'players': players, 'posts': posts})
+        return redirect('coach_dashboard')
     elif user_profile.role == 'manager':
-        players = UserProfile.objects.filter(role='manager')
-        posts = Post.objects.all()
-        return render(request, 'manager_dashboard.html', {'players': players, 'posts': posts})
+        return redirect('manager_dashboard')
     else:
         return redirect('index')
 
 @login_required
-def view_profile(request, user_id):
-    user_profile = get_object_or_404(UserProfile, pk=user_id)
-    return render(request, 'view_profile.html', {'user_profile': user_profile})
+def create_post_player(request):
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES)
+        if form.is_valid():
+            new_post = form.save(commit=False)
+            new_post.user = request.user
+            new_post.save()
+            return redirect('player_dashboard')
+    else:
+        form = PostForm()
+    
+    return render(request, 'create_post_player.html', {'form': form})
+
+@login_required
+def profile_detail(request, user_id):
+    # Fetch the user profile based on the user ID
+    user_profile = get_object_or_404(UserProfile, user__id=user_id)
+    
+    # Try to fetch related profiles (PlayerProfile, CoachProfile, ManagerProfile)
+    try:
+        player_profile = PlayerProfile.objects.get(user_profile=user_profile)
+    except PlayerProfile.DoesNotExist:
+        player_profile = None
+
+    try:
+        coach_profile = Coach.objects.get(user=user_profile)
+    except Coach.DoesNotExist:
+        coach_profile = None
+
+    try:
+        manager_profile = Manager.objects.get(user=user_profile)
+    except Manager.DoesNotExist:
+        manager_profile = None
+
+    # If none of the profiles are found, render a 'profile not found' message
+    if not player_profile and not coach_profile and not manager_profile:
+        return render(request, 'profile_not_found.html')  
+
+    # Pass the profiles to the template
+    context = {
+        'user_profile': user_profile,
+        'player_profile': player_profile,
+        'coach_profile': coach_profile,
+        'manager_profile': manager_profile,
+    }
+    
+    return render(request, 'profile_detail.html', context)
+
 
 @login_required
 def send_message(request):
@@ -410,3 +563,6 @@ def messages_view(request, user_id):
         'user_profile': user_profile
     }
     return render(request, 'messages.html', context)
+
+def permission_denied_view(request, exception):
+    return render(request, '403.html', status=403)

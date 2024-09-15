@@ -29,12 +29,13 @@ class LoginForm(AuthenticationForm):
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
-        fields = ['last_name', 'first_name', 'email', 'role']
+        fields = ['first_name', 'last_name', 'email', 'role', 'avatar']
         labels = {
-            'last_name': 'Vezetéknév',
             'first_name': 'Keresztnév',
+            'last_name': 'Vezetéknév',
             'email': 'Email cím',
-            'role': 'Szerep'
+            'role': 'Szerep',
+            'avatar': 'Profilkép'
         }
 
 class PlayerProfileForm(forms.ModelForm):
@@ -43,13 +44,13 @@ class PlayerProfileForm(forms.ModelForm):
         fields = ['birthdate', 'team', 'position', 'preferred_foot', 'height', 'location', 'looking_for_team']
         widgets = {
             'birthdate': forms.DateInput(attrs={'type': 'date'}),
-            'position': forms.HiddenInput(),  # Rejtett mező, amit JS fog kitölteni
+            'position': forms.HiddenInput(),  # Hidden field to be populated by JavaScript
             'preferred_foot': forms.Select(choices=[('left', 'Bal'), ('right', 'Jobb'), ('two', 'Kétlábas')])
         }
         labels = {
             'birthdate': 'Születési idő',
             'team': 'Csapatnév',
-            'position': 'Pozíció',
+            'position': 'Pozíciók',
             'preferred_foot': 'Milyen lábas',
             'height': 'Magasság',
             'location': 'Tartózkodási hely',
@@ -72,11 +73,23 @@ class CoachForm(forms.ModelForm):
 
     class Meta:
         model = Coach
-        fields = ['birthdate', 'team']
+        fields = ['birthdate', 'team', 'qualifications']
+        widgets = {
+            'qualifications': forms.HiddenInput(),
+        }
         labels = {
             'birthdate': 'Születési idő',
-            'team': 'Csapat'
+            'team': 'Csapat',
+            'qualifications': 'Képesítések',
         }
+    
+    def clean_qualifications(self):
+        qualifications = self.cleaned_data.get('qualifications')
+        if qualifications:
+            qualifications_list = [q.strip() for q in qualifications.split(',') if q.strip()]
+            return ', '.join(qualifications_list)
+        return ''
+
 
 
 class ManagerForm(forms.ModelForm):
@@ -90,7 +103,7 @@ class ManagerForm(forms.ModelForm):
         fields = ['birthdate', 'players']
         labels = {
             'birthdate': 'Születési idő',
-            'players': 'Játékosok'
+            'players': 'Játékosok',
         }
 
 class PostForm(forms.ModelForm):

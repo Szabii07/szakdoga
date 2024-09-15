@@ -55,6 +55,9 @@ ROOT_URLCONF = 'FootballTracker.urls'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+HANDLER403 = 'FTapp.views.permission_denied_view'
+
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

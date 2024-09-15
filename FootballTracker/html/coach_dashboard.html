@@ -1,24 +1,26 @@
-{%load static%}
+{% load static %}
 <!DOCTYPE html>
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coach Dashboard</title>
-    <link rel="stylesheet" href="{% static 'css/coach_dashboard.css' %}">
-    <script src="{% static 'js/coach_dashboard.js' %}" defer></script>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <script src="{% static 'js/dashboard.js' %}" defer></script>
 </head>
 <body>
     <header>
         <div class="header-container">
             <div class="profile-info">
                 <a href="{% url 'profile_edit' %}" class="profile-link">
-                    <img src="{% static 'images/profile_icon.png' %}" alt="Profile">
+                    <img src="{% if user.userprofile.avatar %}{{ user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="User Avatar">
                     <span>{{ request.user.username }}</span>
-                </a>
+                </a>                
             </div>
             <nav class="header-nav">
                 <a href="{% url 'messages' user_id=request.user.id %}">Üzenetek</a>
+                <a href="{% url 'coach_dashboard' %}">Posztok</a>
+                <a href="{% url 'user_filter' %}">Felhasználók Szűrése</a>
             </nav>
         </div>
     </header>
@@ -69,70 +71,80 @@
 
                     <label for="looking_for_team">Keres csapatot:</label>
                     <input type="checkbox" name="looking_for_team" id="looking_for_team" value="True" {% if request.GET.looking_for_team %}checked{% endif %}>
-
                     {% endif %}
                     
                     <button type="submit">Szűrés</button>
                 </form>
             </div>
 
-            <!-- Center: Users or Posts -->
+            <!-- Center: Posts -->
             <div class="posts">
-                {% if request.GET.user_type == 'player' %}
-                <h3>Játékosok</h3>
-                <ul>
-                    {% for player in players %}
-                    <li>{{ player.user_profile.user.username }} - {{ player.position }} - {{ player.height }} cm</li>
-                    {% empty %}
-                    <li>Nincsenek játékosok a megadott szűrőkkel.</li>
-                    {% endfor %}
-                </ul>
-                {% elif request.GET.user_type == 'coach' %}
-                <h3>Edzők</h3>
-                <ul>
-                    {% for coach in coaches %}
-                    <li>{{ coach.user.first_name }} {{ coach.user.last_name }} - {{ coach.team }}</li>
-                    {% empty %}
-                    <li>Nincsenek edzők a megadott szűrőkkel.</li>
-                    {% endfor %}
-                </ul>
-                {% elif request.GET.user_type == 'manager' %}
-                <h3>Menedzserek</h3>
-                <ul>
-                    {% for manager in managers %}
-                    <li>{{ manager.user.username }} - {{ manager.company }}</li>
-                    {% empty %}
-                    <li>Nincsenek menedzserek a megadott szűrőkkel.</li>
-                    {% endfor %}
-                </ul>
-                {% else %}
                 <h3>Posztok</h3>
-                {% for post in posts %}
-                <div class="post">
-                    <p>{{ post.content }}</p>
-                    <form method="POST" action="{% url 'add_comment' %}">
+                <div class="post-form">
+                    <form method="POST" action="{% url 'create_post' %}" enctype="multipart/form-data">
                         {% csrf_token %}
-                        <input type="hidden" name="post_id" value="{{ post.id }}">
-                        {{ comment_form.as_p }}
-                        <button type="submit">Komment</button>
+                        <textarea name="content" placeholder="Írj egy posztot..." required></textarea>
+                        <input type="file" name="image" accept="image/*">
+                        <button type="submit">Post</button>
                     </form>
                 </div>
-                {% empty %}
-                <p>Nincsenek posztok.</p>
+                {% for post in posts %}
+                <div class="post">
+                    <div class="post-header">
+                        <strong>{{ post.user.username }}</strong> - {{ post.created_at|date:"Y-m-d H:i" }}
+                    </div>
+                    <div class="post-content">
+                        <p>{{ post.content }}</p>
+                        {% if post.image %}
+                        <img src="{{ post.image.url }}" alt="Post image" style="max-width: 100%; height: auto;">
+                        {% endif %}
+                    </div>
+                    <div class="post-actions">
+                        <form method="POST" action="{% url 'like_post' post.id %}" class="like-form">
+                            {% csrf_token %}
+                            <button type="submit" class="like-button" data-post-id="{{ post.id }}">Like</button>
+                            <span id="like-count-{{ post.id }}">{{ post.get_likes_count }}</span>
+                        </form>
+                        <form method="POST" action="{% url 'dislike_post' post.id %}" class="dislike-form">
+                            {% csrf_token %}
+                            <button type="submit" class="dislike-button" data-post-id="{{ post.id }}">Dislike</button>
+                            <span id="dislike-count-{{ post.id }}">{{ post.get_dislikes_count }}</span>
+                        </form>
+                    </div>
+                    <div class="comments-section">
+                        <h4>Hozzászólások:</h4>
+                        <div class="comment-list" id="comments-{{ post.id }}">
+                            {% for comment in post.comments.all %}
+                            <div class="comment">
+                                <strong>{{ comment.user.username }}:</strong> {{ comment.content }} <em>({{ comment.created_at|date:"Y-m-d H:i" }})</em>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <form class="comment-form" method="POST" data-post-id="{{ post.id }}">
+                            {% csrf_token %}
+                            <textarea name="content" placeholder="Add a comment..." required></textarea>
+                            <button type="submit">Add Comment</button>
+                        </form>
+                    </div>
+                </div>
                 {% endfor %}
-                {% endif %}
             </div>
 
             <!-- Right Side: Messages -->
             <div class="messages">
                 <h3>Üzenetek</h3>
-                <ul>
-                    {% for message in request.user.messages.all %}
-                    <li>{{ message.sender }}: {{ message.content }}</li>
-                    {% empty %}
-                    <li>Nincsenek üzenetek.</li>
-                    {% endfor %}
-                </ul>
+                {% for message in messages %}
+                <div class="message">
+                    <strong>{{ message.sender.username }}:</strong> {{ message.content }} <em>({{ message.created_at|date:"Y-m-d H:i" }})</em>
+                </div>
+                {% endfor %}
+                <div class="message-form">
+                    <form method="POST" action="{% url 'send_message' %}">
+                        {% csrf_token %}
+                        <textarea name="content" placeholder="Write a message..." required></textarea>
+                        <button type="submit">Send</button>
+                    </form>
+                </div>
             </div>
         </div>
     </main>

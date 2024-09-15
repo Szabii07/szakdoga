@@ -200,22 +200,3 @@ main {
 .message-form button:hover {
     background-color: #0056b3;
 }
-
-.filters {
-    padding: 20px;
-    border-right: 1px solid #ddd;
-}
-
-.filters form {
-    display: flex;
-    flex-direction: column;
-}
-
-.filters label {
-    margin-bottom: 5px;
-}
-
-.filters input, .filters select {
-    margin-bottom: 10px;
-    padding: 5px;
-}

@@ -1,9 +1,11 @@
+{%load static%}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <title>Profil Szerkesztése</title>
 </head>
 <body>
@@ -11,9 +13,6 @@
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.as_p }}
-        {% if player_form %}
-            {{ player_form.as_p }}
-        {% endif %}
         <button type="submit">Mentés</button>
     </form>
 </body>

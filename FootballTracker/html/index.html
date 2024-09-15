@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <title>Szakdolgozat</title>
 </head>
+
 <body>
     <div class="container" id="container">
         <div class="form-container sign-up-container">
@@ -18,21 +20,21 @@
                     <label for="signup-username">{{ signup_form.username.label }}</label>
                     {{ signup_form.username }}
                     {% if signup_form.username.errors %}
-                        <div class="error">{{ signup_form.username.errors }}</div>
+                    <div class="error">{{ signup_form.username.errors }}</div>
                     {% endif %}
                 </div>
                 <div class="form-group">
                     <label for="signup-password1">{{ signup_form.password1.label }}</label>
                     {{ signup_form.password1 }}
                     {% if signup_form.password1.errors %}
-                        <div class="error">{{ signup_form.password1.errors }}</div>
+                    <div class="error">{{ signup_form.password1.errors }}</div>
                     {% endif %}
                 </div>
                 <div class="form-group">
                     <label for="signup-password2">{{ signup_form.password2.label }}</label>
                     {{ signup_form.password2 }}
                     {% if signup_form.password2.errors %}
-                        <div class="error">{{ signup_form.password2.errors }}</div>
+                    <div class="error">{{ signup_form.password2.errors }}</div>
                     {% endif %}
                 </div>
                 <button type="submit" name="signup">Regisztráció</button>
@@ -43,13 +45,13 @@
                 {% csrf_token %}
                 <h1>Bejelentkezés</h1>
                 {% for field in login_form %}
-                    <div class="form-group">
-                        <label for="login-{{ field.id_for_label }}">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.errors %}
-                            <div class="error">{{ field.errors }}</div>
-                        {% endif %}
-                    </div>
+                <div class="form-group">
+                    <label for="login-{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <div class="error">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
                 {% endfor %}
                 <a href="#">Elfelejtett jelszó</a>
                 <button type="submit" name="login">Bejelentkezés</button>
@@ -72,4 +74,5 @@
     </div>
     <script src="{% static 'js/index.js' %}"></script>
 </body>
+
 </html>

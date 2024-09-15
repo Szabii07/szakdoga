@@ -10,7 +10,7 @@
 <body>
     <div class="container">
         <h1>Edző Profil Létrehozása</h1>
-        <form method="post" action="{% url 'create_coach_profile' %}">
+        <form method="post" action="{% url 'create_coach_profile' %}" enctype="multipart/form-data">
             {% csrf_token %}
             {% for field in form %}
                 <div class="form-group">
@@ -21,36 +21,20 @@
                     {% endif %}
                 </div>
             {% endfor %}
-            
+
             <div class="form-group">
+                <label for="qualification">Képesítés hozzáadása:</label>
+                <input type="text" id="qualification" name="qualification">
                 <button type="button" id="add-qualification-btn">Képesítés hozzáadása</button>
-                <div id="qualifications-list">
-                    <strong>Képesítéseid:</strong>
-                    <div id="qualifications-display">
-                        <!-- Képesítések itt jelennek meg -->
-                    </div>
-                </div>
+                <ul id="qualifications-list">
+                    <!-- Képesítések itt jelennek meg -->
+                </ul>
+                <input type="hidden" name="qualifications" id="qualifications-input">
             </div>
 
             <button type="submit">Profil Létrehozása</button>
         </form>
     </div>
-
-    <!-- Modal for adding qualifications -->
-    <div id="qualification-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" data-modal="qualification-modal">&times;</span>
-            <h2>Képesítés hozzáadása</h2>
-            <form id="qualification-form">
-                <div class="form-group">
-                    <label for="qualification">Képesítés:</label>
-                    <input type="text" id="qualification" name="qualification" required>
-                </div>
-                <button type="submit">Hozzáadás</button>
-            </form>
-        </div>
-    </div>
-
     <script src="{% static 'js/create_coach_profile.js' %}"></script>
 </body>
 </html>

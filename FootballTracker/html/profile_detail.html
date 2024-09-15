@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Részletek</title>
+    <link rel="stylesheet" href="{% static 'css/profile_detail.css' %}">
+</head>
+<body>
+    <header>
+        
+    </header>
+    <main>
+        <h1>Profil Részletek</h1>
+        {% if player_profile %}
+            <div class="profile-detail">
+                <img src="{% if player_profile.user_profile.avatar %}{% static player_profile.user_profile.avatar.url %}{% else %}{% static 'images/player_icon.png' %}{% endif %}" alt="{{ player_profile.user_profile.first_name }} {{ player_profile.user_profile.last_name }}">
+                <h2>{{ player_profile.user_profile.first_name }} {{ player_profile.user_profile.last_name }}</h2>
+                <p>Magasság: {{ player_profile.height }} cm</p>
+                <p>Poszt: {{ player_profile.get_position_display }}</p>
+                <p>Születési idő: {{ player_profile.birthdate }}</p>
+                <p>Keres csapatot: {{ player_profile.looking_for_team|yesno:"Igen, Nem" }}</p>
+            </div>
+        {% elif coach_profile %}
+            <div class="profile-detail">
+                <img src="{% if coach_profile.user_profile.avatar %}{% static coach_profile.user_profile.avatar.url %}{% else %}{% static 'images/coach_icon.png' %}{% endif %}" alt="{{ coach_profile.user_profile.first_name }} {{ coach_profile.user_profile.last_name }}">
+                <h2>{{ coach_profile.user_profile.first_name }} {{ coach_profile.user_profile.last_name }}</h2>
+                <p>Csapat: {{ coach_profile.team }}</p>
+                <p>Minősítések: {{ coach_profile.qualifications }}</p>
+            </div>
+        {% elif manager_profile %}
+            <div class="profile-detail">
+                <img src="{% if manager_profile.user_profile.avatar %}{% static manager_profile.user_profile.avatar.url %}{% else %}{% static 'images/manager_icon.png' %}{% endif %}" alt="{{ manager_profile.user_profile.first_name }} {{ manager_profile.user_profile.last_name }}">
+                <h2>{{ manager_profile.user_profile.first_name }} {{ manager_profile.user_profile.last_name }}</h2>
+                <p>Csapat: {{ manager_profile.team }}</p>
+                <p>Tapasztalat: {{ manager_profile.experience }}</p>
+            </div>
+        {% else %}
+            <p>Profil nem található.</p>
+        {% endif %}
+    </main>
+</body>
+</html>

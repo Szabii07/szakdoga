@@ -10,7 +10,7 @@
 <body>
     <div class="profile-container">
         <h1>Felhasználói profil létrehozása</h1>
-        <form method="post" action="{% url 'create_user_profile' %}" class="profile-form">
+        <form method="post" action="{% url 'create_user_profile' %}" enctype="multipart/form-data" class="profile-form">
             {% csrf_token %}
             <div class="form-group">
                 <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
@@ -38,6 +38,13 @@
                 {{ form.role }}
                 {% if form.role.errors %}
                     <div class="error">{{ form.role.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.avatar.id_for_label }}">{{ form.avatar.label }}</label>
+                {{ form.avatar }}
+                {% if form.avatar.errors %}
+                    <div class="error">{{ form.avatar.errors }}</div>
                 {% endif %}
             </div>
             <button type="submit">PROFIL LÉTREHOZÁSA</button>
