@@ -1,23 +1,176 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="hu">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <title>Menedzser Dashboard</title>
+    <title>Manager Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <script src="{% static 'js/dashboard.js' %}" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
+
 <body>
-    <div class="dashboard-container">
-        <h1>Menedzser Dashboard</h1>
-        <h2>Játékosok a felügyeleted alatt</h2>
-        <ul>
-            {% for player in players %}
-                <li>{{ player.first_name }} {{ player.last_name }} - Csapat: {{ player.team }}</li>
-            {% empty %}
-                <li>Nincsenek játékosok a felügyeleted alatt.</li>
-            {% endfor %}
-        </ul>
-    </div>
+    <header>
+        <div class="header-container">
+            <div class="profile-info">
+                <a href="{% url 'profile_edit' %}" class="profile-link">
+                    <img src="{% if user.userprofile.avatar %}{{ user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}"
+                        alt="User Avatar">
+                    <div class="profile-details">
+                        <span class="profile-name">{{ request.user.userprofile.first_name }} {{ request.user.userprofile.last_name }}</span>
+                    </div>
+                </a>
+            </div>
+            <nav class="header-nav">
+                <a href="{% url 'dashboard_redirect' %}" class="nav-home">
+                    <i class="fas fa-home"></i>
+                </a>
+            </nav>
+            <div class="header-actions">
+                <a href="{% url 'user_filter' %}">
+                    <i class="fa-solid fa-magnifying-glass"></i>Keresés...</a>
+                <a href="{% url 'messages_overview' %}">Üzenetek</a>
+                <a href="{% url 'my_follows' %}">Követéseim</a>
+                <a href="{%url 'my_players' %}">Játékosaim</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="dashboard-container">
+            <!-- Left Side: Manager players info -->
+            <div class="team-info">
+                <h3>Játékosaim</h3>
+                <button id="add-player-button" class="button">Új játékos felvétele</button>
+                <ul>
+                    {% if team_players %}
+                    {% for player in team_players %}
+                    <li class="player-item">
+                        <a href="{% url 'profile_detail' player.user_profile.user.id %}" class="player-link">
+                            <img src="{% if player.user_profile.avatar %}{{ player.user_profile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}"
+                                alt="Player Avatar" class="player-avatar">
+                            <span>{{ player.user_profile.first_name }} {{ player.user_profile.last_name }}</span>
+                        </a>
+                    </li>
+                    {% endfor %}
+                    {% else %}
+                    <li>Nincsenek játékosok.</li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <!-- Modal for adding an existing player -->
+            <div id="add-player-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close-button">&times;</span>
+                    <h2>Meglévő játékos hozzáadása</h2>
+                    <form method="POST" action="{% url 'add_existing_player' %}">
+                        {% csrf_token %}
+                        <label for="player">Válassz játékost:</label>
+                        <select id="player" name="player" required>
+                            {% for player in existing_players %}
+                            <option value="{{ player.id }}">{{ player.user_profile.first_name }} {{ player.user_profile.last_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="modal-button">Játékos hozzáadása</button>
+                    </form>
+                    <h3>Játékosok a csapatban:</h3>
+                    <ul id="player-list">
+                        {% for player in manager.players.all %}
+                        <li>
+                            {{ player.user_profile.first_name }} {{ player.user_profile.last_name }} 
+                            <button class="remove-player-btn" data-player-id="{{ player.id }}">X</button>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Center: Posts -->
+            <div class="posts">
+                <h3>Posztok</h3>
+                <div class="post-form">
+                    <form method="POST" action="{% url 'create_post' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <textarea name="content" placeholder="Írj egy posztot..." required></textarea>
+                        <input type="file" name="image" accept="image/*">
+                        <button type="submit">Poszt közzététele</button>
+                    </form>
+                </div>
+                {% for post in posts %}
+                <div class="post">
+                    <div class="post-header">
+                        <img src="{% if post.user.userprofile.avatar %}{{ post.user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}"
+                            alt="Post Author Avatar" class="small-avatar">
+                        <strong>
+                            <a href="{% url 'profile_detail' post.user.id %}">
+                                {{ post.user.userprofile.first_name }} {{ post.user.userprofile.last_name }}
+                            </a>
+                        </strong> - {{ post.created_at|date:"Y-m-d H:i" }}
+                    </div>
+                    <div class="post-content">
+                        <p>{{ post.content }}</p>
+                        {% if post.image %}
+                        <img src="{{ post.image.url }}" alt="Post image" style="max-width: 100%; height: auto;">
+                        {% endif %}
+                    </div>
+                    <div class="post-actions">
+                        <form method="POST" action="{% url 'like_post' post.id %}" class="like-form">
+                            {% csrf_token %}
+                            <button type="submit" class="like-button" data-post-id="{{ post.id }}"><i class="fa-regular fa-thumbs-up"></i></button>
+                            <span id="like-count-{{ post.id }}">{{ post.get_likes_count }}</span>
+                        </form>
+                        <form method="POST" action="{% url 'dislike_post' post.id %}" class="dislike-form">
+                            {% csrf_token %}
+                            <button type="submit" class="dislike-button" data-post-id="{{ post.id }}"><i class="fa-regular fa-thumbs-down"></i></button>
+                            <span id="dislike-count-{{ post.id }}">{{ post.get_dislikes_count }}</span>
+                        </form>
+                    </div>
+                    <div class="comments-section">
+                        <h4><i class="fa-solid fa-comments"></i>Hozzászólások<i class="fa-solid fa-comments"></i></h4>
+                        <div class="comment-list" id="comments-{{ post.id }}">
+                            {% for comment in post.comments.all %}
+                            <div class="comment">
+                                <img src="{% if comment.user.userprofile.avatar %}{{ comment.user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}"
+                                    alt="Comment Author Avatar" class="small-avatar">
+                                <strong>
+                                    <a href="{% url 'profile_detail' comment.user.id %}">
+                                        {{ comment.user.userprofile.first_name }} {{ comment.user.userprofile.last_name }}
+                                    </a>
+                                </strong>: {{ comment.content }} <em>({{ comment.created_at|date:"Y-m-d H:i" }})</em>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <form class="comment-form" method="POST" data-post-id="{{ post.id }}">
+                            {% csrf_token %}
+                            <textarea name="content" placeholder="Szólj hozzá..." required></textarea>
+                            <button type="submit">Hozzászólás</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Right Side: Messages -->
+            <div class="conversation-list">
+                <h2>Beszélgetéseim</h2>
+                <a href="{% url 'new_conversation' %}" class="button">Új üzenet</a>
+                <ul>
+                    {% for conversation_user in conversation_users %}
+                    <li>
+                        <a href="{% url 'conversation_view' user_id=conversation_user.id %}">
+                            <img src="{% if conversation_user.userprofile.avatar %}{{ conversation_user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}"
+                                alt="Avatar" class="small-avatar">
+                            <span>{{ conversation_user.userprofile.first_name }} {{ conversation_user.userprofile.last_name }}</span>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </main>
 </body>
+
 </html>

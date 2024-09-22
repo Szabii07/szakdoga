@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import UserProfile, PlayerProfile, Coach, Manager, Post, Message, Experience, Comment
+from .models import UserProfile, PlayerProfile, Coach, Manager, Post, Message, Comment, Team
 
 class SignupForm(UserCreationForm):
     class Meta:
@@ -31,17 +31,19 @@ class UserProfileForm(forms.ModelForm):
         model = UserProfile
         fields = ['first_name', 'last_name', 'email', 'role', 'avatar']
         labels = {
-            'first_name': 'Keresztnév',
-            'last_name': 'Vezetéknév',
+            'first_name': 'Vezetéknév',
+            'last_name': 'Keresztnév',
             'email': 'Email cím',
             'role': 'Szerep',
             'avatar': 'Profilkép'
         }
 
 class PlayerProfileForm(forms.ModelForm):
+    team_name = forms.CharField(max_length=255, required=False)
+
     class Meta:
         model = PlayerProfile
-        fields = ['birthdate', 'team', 'position', 'preferred_foot', 'height', 'location', 'looking_for_team']
+        fields = ['birthdate', 'team_name', 'position', 'preferred_foot', 'height', 'location', 'looking_for_team']
         widgets = {
             'birthdate': forms.DateInput(attrs={'type': 'date'}),
             'position': forms.HiddenInput(),  # Hidden field to be populated by JavaScript
@@ -49,7 +51,7 @@ class PlayerProfileForm(forms.ModelForm):
         }
         labels = {
             'birthdate': 'Születési idő',
-            'team': 'Csapatnév',
+            'team_name': 'Csapatnév',
             'position': 'Pozíciók',
             'preferred_foot': 'Milyen lábas',
             'height': 'Magasság',
@@ -57,38 +59,34 @@ class PlayerProfileForm(forms.ModelForm):
             'looking_for_team': 'Keres csapatot?',
         }
 
-class ExperienceForm(forms.ModelForm):
-    class Meta:
-        model = Experience
-        fields = ['title', 'description']
-        labels = {
-            'title': 'Csapat',
-            'description': 'Elért eredmény',
-        }
-
 class CoachForm(forms.ModelForm):
-    birthdate = forms.DateField(
-        widget=forms.DateInput(attrs={'type': 'date'})
-    )
+    birthdate = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+    team_name = forms.CharField(max_length=100, required=False, label="Csapatnév")
+    team_choice = forms.ModelChoiceField(queryset=Team.objects.all(), required=False, label="Válassz csapatot")
 
     class Meta:
         model = Coach
-        fields = ['birthdate', 'team', 'qualifications']
+        fields = ['birthdate', 'team_name', 'team_choice', 'qualifications']
         widgets = {
             'qualifications': forms.HiddenInput(),
         }
         labels = {
             'birthdate': 'Születési idő',
-            'team': 'Csapat',
+            'team_name': 'Csapatnév (új)',
+            'team_choice': 'Csapatválasztó',
             'qualifications': 'Képesítések',
         }
     
-    def clean_qualifications(self):
-        qualifications = self.cleaned_data.get('qualifications')
-        if qualifications:
-            qualifications_list = [q.strip() for q in qualifications.split(',') if q.strip()]
-            return ', '.join(qualifications_list)
-        return ''
+    def clean_team_name(self):
+        team_name = self.cleaned_data.get('team_name')
+        if team_name:
+            team, created = Team.objects.get_or_create(name=team_name)
+            return team
+        return None
+
+    def clean_team_choice(self):
+        team = self.cleaned_data.get('team_choice')
+        return team
 
 
 
@@ -96,22 +94,22 @@ class ManagerForm(forms.ModelForm):
     birthdate = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date'})
     )
-    players = forms.ModelMultipleChoiceField(queryset=PlayerProfile.objects.all(), required=False, widget=forms.CheckboxSelectMultiple)
-
+    team = forms.CharField(label="Csapatnév", required=False)
+    
     class Meta:
         model = Manager
-        fields = ['birthdate', 'players']
+        fields = ['birthdate', 'team']
         labels = {
             'birthdate': 'Születési idő',
-            'players': 'Játékosok',
+            'team': 'Csapatnév',
         }
 
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['content']
-        labels = {
-            'content': 'Poszt tartalma'
+        fields = ['content', 'image', 'audience']
+        widgets = {
+            'audience': forms.Select(choices=Post.AUDIENCE_CHOICES),
         }
 
 class CommentForm(forms.ModelForm):
@@ -125,8 +123,7 @@ class CommentForm(forms.ModelForm):
 class MessageForm(forms.ModelForm):
     class Meta:
         model = Message
-        fields = ['recipient', 'content']
+        fields = ['content']
         labels = {
-            'recipient': 'Címzett',
-            'content': 'Üzenet'
+            'content': 'Üzenet',
         }

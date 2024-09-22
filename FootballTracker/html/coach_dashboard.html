@@ -7,6 +7,7 @@
     <title>Coach Dashboard</title>
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
     <script src="{% static 'js/dashboard.js' %}" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <header>
@@ -14,67 +15,50 @@
             <div class="profile-info">
                 <a href="{% url 'profile_edit' %}" class="profile-link">
                     <img src="{% if user.userprofile.avatar %}{{ user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="User Avatar">
-                    <span>{{ request.user.username }}</span>
-                </a>                
+                    <div class="profile-details">
+                        <span class="profile-name">{{ request.user.userprofile.first_name }} {{ request.user.userprofile.last_name }}</span>
+                    </div>
+                </a>
             </div>
             <nav class="header-nav">
-                <a href="{% url 'messages' user_id=request.user.id %}">Üzenetek</a>
-                <a href="{% url 'coach_dashboard' %}">Posztok</a>
-                <a href="{% url 'user_filter' %}">Felhasználók Szűrése</a>
+                <a href="{% url 'dashboard_redirect' %}" class="nav-home">
+                    <i class="fas fa-home"></i>
+                </a>
             </nav>
+            <div class="header-actions">
+                <a href="{% url 'user_filter' %}">
+                    <i class="fa-solid fa-magnifying-glass"></i>Keresés...</a>
+                <a href="{% url 'messages_overview' %}">Üzenetek</a>
+                <a href="{% url 'my_follows' %}">Követéseim</a>
+            </div>
         </div>
     </header>
 
     <main>
         <div class="dashboard-container">
-            <!-- Left Side: Filters -->
-            <div class="filters">
-                <h3>Szűrők</h3>
-                <form method="GET" action="{% url 'coach_dashboard' %}">
-                    <label for="user_type">Felhasználó típusa:</label>
-                    <select name="user_type" id="user_type">
-                        <option value="">--Válassz--</option>
-                        <option value="player" {% if request.GET.user_type == 'player' %}selected{% endif %}>Játékos</option>
-                        <option value="coach" {% if request.GET.user_type == 'coach' %}selected{% endif %}>Edző</option>
-                        <option value="manager" {% if request.GET.user_type == 'manager' %}selected{% endif %}>Menedzser</option>
-                    </select>
-
-                    <!-- Player-specific filters -->
-                    {% if request.GET.user_type == 'player' %}
-                    <label for="min_height">Min. Magasság:</label>
-                    <input type="number" name="min_height" id="min_height" value="{{ request.GET.min_height }}">
-
-                    <label for="max_height">Max. Magasság:</label>
-                    <input type="number" name="max_height" id="max_height" value="{{ request.GET.max_height }}">
-
-                    <label for="min_birth_date">Születési idő (min):</label>
-                    <input type="date" name="min_birth_date" id="min_birth_date" value="{{ request.GET.min_birth_date }}">
-
-                    <label for="max_birth_date">Születési idő (max):</label>
-                    <input type="date" name="max_birth_date" id="max_birth_date" value="{{ request.GET.max_birth_date }}">
-
-                    <label for="position">Poszt:</label>
-                    <select name="position" id="position">
-                        <option value="">--Válassz--</option>
-                        <option value="GK" {% if request.GET.position == 'GK' %}selected{% endif %}>Kapus</option>
-                        <option value="RB" {% if request.GET.position == 'RB' %}selected{% endif %}>Jobbhátvéd</option>
-                        <option value="CB" {% if request.GET.position == 'CB' %}selected{% endif %}>Középhátvéd</option>
-                        <option value="LB" {% if request.GET.position == 'LB' %}selected{% endif %}>Balhátvéd</option>
-                        <option value="CDM" {% if request.GET.position == 'CDM' %}selected{% endif %}>Védekező középpályás</option>
-                        <option value="CM" {% if request.GET.position == 'CM' %}selected{% endif %}>Középpályás</option>
-                        <option value="CAM" {% if request.GET.position == 'CAM' %}selected{% endif %}>Támadó középpályás</option>
-                        <option value="RW" {% if request.GET.position == 'RW' %}selected{% endif %}>Jobbszélső</option>
-                        <option value="LW" {% if request.GET.position == 'LW' %}selected{% endif %}>Balszélső</option>
-                        <option value="ST" {% if request.GET.position == 'ST' %}selected{% endif %}>Csatár</option>
-                        <option value="CF" {% if request.GET.position == 'CF' %}selected{% endif %}>Középcsatár</option>
-                    </select>
-
-                    <label for="looking_for_team">Keres csapatot:</label>
-                    <input type="checkbox" name="looking_for_team" id="looking_for_team" value="True" {% if request.GET.looking_for_team %}checked{% endif %}>
+            <!-- Left Side: Team info -->
+            <div class="team-info">
+                <h3>
+                    {% if team %}
+                        <p>{{ team.name }}</p>
+                    {% else %}
+                        <p>Nincs jelenleg csapatod</p>
                     {% endif %}
-                    
-                    <button type="submit">Szűrés</button>
-                </form>
+                </h3>
+                <ul>
+                    {% if team_players %}
+                        {% for player in team_players %}
+                        <li class="player-item">
+                            <a href="{% url 'profile_detail' player.user_profile.user.id %}" class="player-link">
+                                <img src="{% if player.user_profile.avatar %}{{ player.user_profile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="Player Avatar" class="player-avatar">
+                                <span>{{ player.user_profile.first_name }} {{ player.user_profile.last_name }}</span>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <li>Nincsenek játékosok a csapatban.</li>
+                    {% endif %}
+                </ul>
             </div>
 
             <!-- Center: Posts -->
@@ -85,13 +69,18 @@
                         {% csrf_token %}
                         <textarea name="content" placeholder="Írj egy posztot..." required></textarea>
                         <input type="file" name="image" accept="image/*">
-                        <button type="submit">Post</button>
+                        <button type="submit">Poszt közzététele</button>
                     </form>
                 </div>
                 {% for post in posts %}
                 <div class="post">
                     <div class="post-header">
-                        <strong>{{ post.user.username }}</strong> - {{ post.created_at|date:"Y-m-d H:i" }}
+                        <img src="{% if post.user.userprofile.avatar %}{{ post.user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="Post Author Avatar" class="small-avatar">
+                        <strong>
+                            <a href="{% url 'profile_detail' post.user.id %}">
+                                {{ post.user.userprofile.first_name }} {{ post.user.userprofile.last_name }}
+                            </a>
+                        </strong> - {{ post.created_at|date:"Y-m-d H:i" }}
                     </div>
                     <div class="post-content">
                         <p>{{ post.content }}</p>
@@ -102,28 +91,33 @@
                     <div class="post-actions">
                         <form method="POST" action="{% url 'like_post' post.id %}" class="like-form">
                             {% csrf_token %}
-                            <button type="submit" class="like-button" data-post-id="{{ post.id }}">Like</button>
+                            <button type="submit" class="like-button" data-post-id="{{ post.id }}"><i class="fa-regular fa-thumbs-up"></i></button>
                             <span id="like-count-{{ post.id }}">{{ post.get_likes_count }}</span>
                         </form>
                         <form method="POST" action="{% url 'dislike_post' post.id %}" class="dislike-form">
                             {% csrf_token %}
-                            <button type="submit" class="dislike-button" data-post-id="{{ post.id }}">Dislike</button>
+                            <button type="submit" class="dislike-button" data-post-id="{{ post.id }}"><i class="fa-regular fa-thumbs-down"></i></button>
                             <span id="dislike-count-{{ post.id }}">{{ post.get_dislikes_count }}</span>
                         </form>
                     </div>
                     <div class="comments-section">
-                        <h4>Hozzászólások:</h4>
+                        <h4><i class="fa-solid fa-comments"></i>Hozzászólások<i class="fa-solid fa-comments"></i></h4>
                         <div class="comment-list" id="comments-{{ post.id }}">
                             {% for comment in post.comments.all %}
                             <div class="comment">
-                                <strong>{{ comment.user.username }}:</strong> {{ comment.content }} <em>({{ comment.created_at|date:"Y-m-d H:i" }})</em>
+                                <img src="{% if comment.user.userprofile.avatar %}{{ comment.user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="Comment Author Avatar" class="small-avatar">
+                                <strong>
+                                    <a href="{% url 'profile_detail' comment.user.id %}">
+                                        {{ comment.user.userprofile.first_name }} {{ comment.user.userprofile.last_name }}
+                                    </a>
+                                </strong>: {{ comment.content }} <em>({{ comment.created_at|date:"Y-m-d H:i" }})</em>
                             </div>
                             {% endfor %}
                         </div>
                         <form class="comment-form" method="POST" data-post-id="{{ post.id }}">
                             {% csrf_token %}
-                            <textarea name="content" placeholder="Add a comment..." required></textarea>
-                            <button type="submit">Add Comment</button>
+                            <textarea name="content" placeholder="Szólj hozzá..." required></textarea>
+                            <button type="submit">Hozzászólás</button>
                         </form>
                     </div>
                 </div>
@@ -131,20 +125,21 @@
             </div>
 
             <!-- Right Side: Messages -->
-            <div class="messages">
-                <h3>Üzenetek</h3>
-                {% for message in messages %}
-                <div class="message">
-                    <strong>{{ message.sender.username }}:</strong> {{ message.content }} <em>({{ message.created_at|date:"Y-m-d H:i" }})</em>
-                </div>
-                {% endfor %}
-                <div class="message-form">
-                    <form method="POST" action="{% url 'send_message' %}">
-                        {% csrf_token %}
-                        <textarea name="content" placeholder="Write a message..." required></textarea>
-                        <button type="submit">Send</button>
-                    </form>
-                </div>
+            <div class="conversation-list">
+                <h2>Beszélgetéseim</h2>
+                <a href="{% url 'new_conversation' %}" class="button">Új üzenet</a>
+                <ul>
+                    {% for conversation_user in conversation_users %}
+                    <li>
+                        <a href="{% url 'conversation_view' user_id=conversation_user.id %}">
+                            <img src="{% if conversation_user.userprofile.avatar %}{{ conversation_user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="Avatar" class="small-avatar">
+                            <span>{{ conversation_user.userprofile.first_name }} {{ conversation_user.userprofile.last_name }}</span>
+                        </a>
+                    </li>
+                    {% empty %}
+                    <li>Nincs korábbi beszélgetés.</li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
     </main>

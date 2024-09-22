@@ -1,39 +1,75 @@
-/* Basic styling for the user filter page */
 body {
     font-family: Arial, sans-serif;
-    line-height: 1.6;
-    color: #333;
-    background-color: #f4f4f4;
     margin: 0;
     padding: 0;
+    background-color: #f4f4f4;
 }
 
 header {
-    background: #333;
+    background-color: #333;
     color: #fff;
-    padding: 10px 0;
+    padding: 10px 20px;
 }
 
 .header-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 20px;
 }
 
-.profile-info img {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
+
+.profile-info {
+    display: flex;
+    align-items: center;
 }
 
-.header-nav a {
-    color: #fff;
+.profile-link {
+    display: flex;
+    align-items: center;
     text-decoration: none;
-    margin-left: 20px;
+    color: #fff;
 }
 
-.header-nav a:hover {
+.profile-link img {
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+}
+
+.profile-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-name {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.header-nav {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.nav-home {
+    font-size: 24px;
+    color: #fff;
+    text-align: center;
+}
+
+.header-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.header-actions a {
+    text-decoration: none;
+    color: #fff;
+}
+
+.header-actions a:hover {
     text-decoration: underline;
 }
 
@@ -89,25 +125,30 @@ form button:hover {
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
+    justify-content: center;
 }
 
 .user-card {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 200px;
-    border: 2px solid #ccc;
-    border-radius: 10px;
+    width: 220px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
     overflow: hidden;
     text-align: center;
-    transition: transform 0.3s, box-shadow 0.3s;
-    text-decoration: none;
-    color: inherit;
+    background: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s;
+}
+
+.user-card:hover {
+    transform: scale(1.02);
 }
 
 .user-card img {
     width: 100%;
-    height: 150px;
+    height: 250px;
     object-fit: cover;
 }
 
@@ -115,14 +156,17 @@ form button:hover {
     padding: 10px;
 }
 
-.user-card:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+.user-card h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
 }
 
-.user-card h3 {
-    margin: 10px 0;
+.user-card p {
+    margin: 5px 0;
+    color: #666;
 }
+
 
 @media (max-width: 768px) {
     .user-grid {
@@ -134,4 +178,25 @@ form button:hover {
     .user-grid {
         grid-template-columns: 1fr;
     }
+}
+
+button {
+    border: none;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.follow-btn {
+    background-color: #007bff;
+}
+
+.unfollow-btn {
+    background-color: #dc3545;
+}
+
+button:hover {
+    opacity: 0.9;
 }

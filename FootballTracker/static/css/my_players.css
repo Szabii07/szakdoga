@@ -1,0 +1,212 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+header {
+    background-color: #333;
+    color: #fff;
+    padding: 10px 20px;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+
+.profile-info {
+    display: flex;
+    align-items: center;
+}
+
+.profile-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: #fff;
+}
+
+.profile-link img {
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+}
+
+.profile-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-name {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.header-nav {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.nav-home {
+    font-size: 24px;
+    color: #fff;
+    text-align: center;
+}
+
+.header-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.header-actions a {
+    text-decoration: none;
+    color: #fff;
+}
+
+.header-actions a:hover {
+    text-decoration: underline;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.page-title {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.followed-users-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.user-list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-between;
+}
+
+.user-card {
+    background-color: #f5f5f5;
+    border-radius: 10px;
+    padding: 20px;
+    width: 200px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.user-avatar img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 10px;
+}
+
+.user-info h3 {
+    margin: 10px 0 5px;
+}
+
+.view-profile-btn {
+    display: block;
+    margin: 10px 0;
+    color: white;
+    background-color: #4CAF50;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.view-profile-btn:hover {
+    background-color: #45a049;
+}
+
+.unfollow-form {
+    margin-top: 10px;
+}
+
+.unfollow-btn {
+    background-color: #f44336;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.unfollow-btn:hover {
+    background-color: #d32f2f;
+}
+
+
+.comment-input {
+    width: 100%;
+    padding: 5px;
+    margin-top: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.save-comment-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 5px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 5px;
+}
+
+.save-comment-btn:hover {
+    background-color: #45a049;
+}
+
+.players-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.note-item {
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+}
+
+.delete-note-btn {
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.remove-player-btn {
+    background-color: #d32f2f;
+    color: white;
+    padding: 5px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 5px;
+}
+
+.remove-player-btn {
+    background-color: #f44336;
+}

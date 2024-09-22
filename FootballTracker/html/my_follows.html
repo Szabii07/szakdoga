@@ -1,0 +1,66 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Követéseim</title>
+    <link rel="stylesheet" href="{% static 'css/my_follows.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="profile-info">
+                <a href="{% url 'profile_edit' %}" class="profile-link">
+                    <img src="{% if user.userprofile.avatar %}{{ user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="User Avatar">
+                    <div class="profile-details">
+                        <span class="profile-name">{{ request.user.userprofile.first_name }} {{ request.user.userprofile.last_name }}</span>
+                    </div>
+                </a>
+            </div>
+            <nav class="header-nav">
+                <a href="{% url 'dashboard_redirect' %}" class="nav-home">
+                    <i class="fas fa-home"></i>
+                </a>
+            </nav>
+            <div class="header-actions">
+                <a href="{% url 'user_filter' %}">
+                    <i class="fa-solid fa-magnifying-glass"></i>Keresés...</a>
+                <a href="{% url 'messages_overview' %}">Üzenetek</a>
+                <a href="{% url 'my_follows' %}">Követéseim</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <h1>Követéseim</h1>
+            <div class="followed-users-list">
+                {% if followed_users %}
+                    <ul class="user-list">
+                        {% for user in followed_users %}
+                            <li class="user-card">
+                                <div class="user-avatar">
+                                    <img src="{{ user.avatar.url }}" alt="{{ user.first_name }} {{ user.last_name }}">
+                                </div>
+                                <div class="user-info">
+                                    <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+                                    <a href="{% url 'profile_detail' user.id %}" class="view-profile-btn">Profil megtekintése</a>
+                                    <form method="POST" action="{% url 'unfollow_user' user.id %}" class="unfollow-form">
+                                        {% csrf_token %}
+                                        <button type="submit" class="unfollow-btn">Kikövetés</button>
+                                    </form>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>Még nem követsz senkit.</p>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

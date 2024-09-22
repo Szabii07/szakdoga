@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.conf import settings
+import datetime
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -16,6 +17,8 @@ class UserProfile(models.Model):
     email = models.EmailField(max_length=254, default='example@example.com')
     role = models.CharField(max_length=10, choices=[('player', 'Játékos'), ('coach', 'Edző'), ('manager', 'Menedzser')])
     avatar = models.ImageField(upload_to='avatars/', default='avatars/default_avatar.png', blank=True, null=True)
+    followers = models.ManyToManyField('self', symmetrical=False, related_name='following_set', blank=True)
+    following = models.ManyToManyField('self', symmetrical=False, related_name='followers_set', blank=True)
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
@@ -37,30 +40,28 @@ class PlayerProfile(models.Model):
     ]
     user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, default=None)
     birthdate = models.DateField(verbose_name="Születési idő")
-    team = models.CharField(max_length=255, verbose_name="Csapatnév")
+    team_name = models.CharField(max_length=255, verbose_name="Csapatnév", null=True, blank=True)
     position = models.TextField(verbose_name="Pozíciók")
     preferred_foot = models.CharField(max_length=10, choices=[('left', 'Bal'), ('right', 'Jobb'), ('two', 'Kétlábas')], verbose_name="Milyen lábas", default='right')
     height = models.IntegerField(verbose_name="Magasság")
     location = models.CharField(max_length=255, verbose_name="Tartózkodási hely")
     looking_for_team = models.BooleanField(default=False, verbose_name="Keres csapatot?")
-    experience = models.TextField(blank=True, verbose_name="Tapasztalatok")
 
     def __str__(self):
-        return f'{self.team} - {self.position}'
+        return f'{self.team_name} - {self.position}'
     
-
-class Experience(models.Model):
-    title = models.CharField(max_length=255, verbose_name="Cím")
-    description = models.TextField(verbose_name="Leírás")
-    player_profile = models.ForeignKey(PlayerProfile, on_delete=models.CASCADE, related_name='experiences')
+class Team(models.Model):
+    name = models.CharField(max_length=100)
+    coach = models.OneToOneField('Coach', on_delete=models.SET_NULL, related_name='coached_team', null=True, blank=True)
+    players = models.ManyToManyField(PlayerProfile, related_name='teams')
 
     def __str__(self):
-        return self.title
+        return self.name
 
 class Coach(models.Model):
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
     birthdate = models.DateField(verbose_name="Születési idő")
-    team = models.CharField(max_length=100)
+    team = models.OneToOneField(Team, on_delete=models.SET_NULL, null=True, blank=True, related_name='coach_profile')
     qualifications = models.TextField(blank=True)
 
     def __str__(self):
@@ -69,17 +70,39 @@ class Coach(models.Model):
 class Manager(models.Model):
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
     birthdate = models.DateField(verbose_name="Születési idő")
-    team = models.CharField(max_length=100)
+    team = models.CharField(max_length=100, null=True)
     experience = models.TextField()
+    players = models.ManyToManyField(PlayerProfile, blank=True, related_name='managers')
 
     def __str__(self):
         return self.user.user.username
+    
+class Follow(models.Model):
+    follower = models.ForeignKey(UserProfile, related_name='follows', on_delete=models.CASCADE)
+    followed = models.ForeignKey(UserProfile, related_name='followed_by', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('follower', 'followed')
+
+    def __str__(self):
+        return f'{self.follower} follows {self.followed}'
+
 
 class Post(models.Model):
+    AUDIENCE_CHOICES = [
+        ('everyone', 'Everyone'),
+        ('coaches', 'Coaches'),
+        ('players', 'Players'),
+        ('managers', 'Managers'),
+        ('team', 'My Team'),
+    ]
+    
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
     image = models.ImageField(upload_to='post_images/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    audience = models.CharField(max_length=10, choices=AUDIENCE_CHOICES, default='everyone')
 
     def get_likes_count(self):
         return self.like_set.count()
@@ -112,11 +135,15 @@ class Message(models.Model):
     recipient = models.ForeignKey(User, related_name='received_messages', on_delete=models.CASCADE)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"From {self.sender.username} to {self.recipient.username} at {self.created_at}"
 
-class Follow(models.Model):
-    user = models.ForeignKey(User, related_name='following', on_delete=models.CASCADE)
-    followed_user = models.ForeignKey(User, related_name='followers', on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
+class Note(models.Model):
+    text = models.TextField()
+    player = models.ForeignKey(PlayerProfile, on_delete=models.CASCADE, default=PlayerProfile.objects.first().id)
+    manager = models.ForeignKey(Manager, on_delete=models.CASCADE, default=Manager.objects.first().id)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
 
     def __str__(self):
-        return f"{self.user.username} követi {self.followed_user.username}"
+        return self.text

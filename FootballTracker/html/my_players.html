@@ -1,0 +1,81 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Játékosaim</title>
+    <link rel="stylesheet" href="{% static 'css/my_players.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="profile-info">
+                <a href="{% url 'profile_edit' %}" class="profile-link">
+                    <img src="{% if user.userprofile.avatar %}{{ user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="User Avatar">
+                    <div class="profile-details">
+                        <span class="profile-name">{{ request.user.userprofile.first_name }} {{ request.user.userprofile.last_name }}</span>
+                    </div>
+                </a>
+            </div>
+            <nav class="header-nav">
+                <a href="{% url 'dashboard_redirect' %}" class="nav-home">
+                    <i class="fas fa-home"></i>
+                </a>
+            </nav>
+            <div class="header-actions">
+                <a href="{% url 'user_filter' %}"><i class="fa-solid fa-magnifying-glass"></i>Keresés...</a>
+                <a href="{% url 'messages_overview' %}">Üzenetek</a>
+                <a href="{% url 'my_follows' %}">Követéseim</a>
+                <a href="{%url 'my_players' %}">Játékosaim</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <h1>Játékosaim</h1>
+            <div class="players-list">
+                {% if players %}
+                    <ul class="user-list">
+                        {% for player in players %}
+                            <li class="user-card">
+                                <div class="user-avatar">
+                                    <img src="{{ player.user_profile.avatar.url }}" alt="{{ player.user_profile.first_name }} {{ player.user_profile.last_name }}">
+                                </div>
+                                <div class="user-info">
+                                    <h3>{{ player.user_profile.first_name }} {{ player.user_profile.last_name }}</h3>
+                                    <form method="POST" action="{% url 'remove_player' player.id %}" class="remove-player-form"></form>
+                                        {% csrf_token %}
+                                        <button type="submit" class="remove-player-btn">Törlés a játékosaim közül</button>
+                                    </form>
+
+                                    <form id="noteForm" method="POST" action="{% url 'save_note' %}">
+                                        {% csrf_token %}
+                                        <textarea name="note" required rows="3" placeholder="Írj megjegyzést..." class="comment-input"></textarea>
+                                        <input type="hidden" name="player_id" value="{{ player.id }}">
+                                        <button type="submit" class="save-comment-btn">Megjegyzés mentése</button>
+                                    </form>
+                                
+                                    <div id="commentsSection">
+                                        {% for note in player.notes.all %}
+                                            <div class="note-item" id="note-{{ note.id }}">
+                                                <p>{{ note.text }}</p>
+                                                <button class="delete-note-btn" data-note-id="{{ note.id }}">Törlés</button>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>Nincsenek játékosok a listádban.</p>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

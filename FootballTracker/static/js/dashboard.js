@@ -91,4 +91,53 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         return cookieValue;
     }
+
+    // Modal functionality
+    const modal = document.getElementById("add-player-modal");
+    const addPlayerButton = document.getElementById("add-player-button");
+    const closeButton = document.querySelector(".close-button");
+    const removeButtons = document.querySelectorAll(".remove-player-btn");
+
+    addPlayerButton.addEventListener("click", function() {
+        modal.style.display = "block";
+    });
+
+    closeButton.addEventListener("click", function() {
+        modal.style.display = "none";
+    });
+
+    window.addEventListener("click", function(event) {
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    });
+
+    // Add event listeners to remove buttons
+    removeButtons.forEach(button => {
+        button.addEventListener("click", function() {
+            const playerId = button.getAttribute("data-player-id");
+            removePlayer(playerId);
+        });
+    });
+
+    function removePlayer(playerId) {
+        // Make a request to the server to remove the player
+        fetch(`/remove_player/${playerId}/`, { // Adjust the URL as needed
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}', // Include CSRF token
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ player_id: playerId })
+        })
+        .then(response => {
+            if (response.ok) {
+                // Remove the player from the UI
+                const playerItem = document.querySelector(`button[data-player-id="${playerId}"]`).parentElement;
+                playerItem.remove();
+            } else {
+                console.error('Error removing player');
+            }
+        });
+    }
 });

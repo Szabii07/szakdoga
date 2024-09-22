@@ -1,44 +1,99 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="hu">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profil Részletek</title>
     <link rel="stylesheet" href="{% static 'css/profile_detail.css' %}">
+    <script src="{% static 'js/profile_detail.js' %}" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
+
 <body>
     <header>
-        
+        <div class="header-container">
+            <div class="profile-info">
+                <a href="{% url 'profile_edit' %}" class="profile-link">
+                    <img src="{% if user.userprofile.avatar %}{{ user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="User Avatar">
+                    <div class="profile-details">
+                        <span class="profile-name">{{ request.user.userprofile.first_name }} {{ request.user.userprofile.last_name }}</span>
+                    </div>
+                </a>
+            </div>
+            <nav class="header-nav">
+                <a href="{% url 'dashboard_redirect' %}" class="nav-home">
+                    <i class="fas fa-home"></i>
+                </a>
+            </nav>
+            <div class="header-actions">
+                <a href="{% url 'user_filter' %}">
+                    <i class="fa-solid fa-magnifying-glass"></i>Keresés...</a>
+                <a href="{% url 'messages_overview' %}">Üzenetek</a>
+                <a href="{% url 'my_follows' %}">Követéseim</a>
+            </div>
+        </div>
     </header>
     <main>
         <h1>Profil Részletek</h1>
         {% if player_profile %}
-            <div class="profile-detail">
-                <img src="{% if player_profile.user_profile.avatar %}{% static player_profile.user_profile.avatar.url %}{% else %}{% static 'images/player_icon.png' %}{% endif %}" alt="{{ player_profile.user_profile.first_name }} {{ player_profile.user_profile.last_name }}">
-                <h2>{{ player_profile.user_profile.first_name }} {{ player_profile.user_profile.last_name }}</h2>
-                <p>Magasság: {{ player_profile.height }} cm</p>
-                <p>Poszt: {{ player_profile.get_position_display }}</p>
-                <p>Születési idő: {{ player_profile.birthdate }}</p>
-                <p>Keres csapatot: {{ player_profile.looking_for_team|yesno:"Igen, Nem" }}</p>
-            </div>
+        <div class="profile-detail">
+            <img src="{% if player_profile.user_profile.avatar %}{{ player_profile.user_profile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="User Avatar">
+            <h2>{{ player_profile.user_profile.first_name }} {{ player_profile.user_profile.last_name }}</h2>
+            <p>Magasság: {{ player_profile.height }} cm</p>
+            <p>Poszt: {{ player_profile.position }}</p>
+            <p>Születési idő: {{ player_profile.birthdate }}</p>
+            <p>Keres csapatot: {{ player_profile.looking_for_team|yesno:"Igen, Nem" }}</p>
+
+            <!-- Follow/Unfollow Button -->
+            {% if user.is_authenticated %}
+            <form method="POST" action="{% url 'follow_user' player_profile.user_profile.id %}" class="follow-form">
+                {% csrf_token %}
+                <button type="submit" class="{% if is_following %}unfollow-btn{% else %}follow-btn{% endif %}" data-follow-status="{% if is_following %}true{% else %}false{% endif %}">
+                    {% if is_following %} Kikövetés {% else %} Követés {% endif %}
+                </button>
+            </form>
+            {% endif %}
+        </div>
         {% elif coach_profile %}
-            <div class="profile-detail">
-                <img src="{% if coach_profile.user_profile.avatar %}{% static coach_profile.user_profile.avatar.url %}{% else %}{% static 'images/coach_icon.png' %}{% endif %}" alt="{{ coach_profile.user_profile.first_name }} {{ coach_profile.user_profile.last_name }}">
-                <h2>{{ coach_profile.user_profile.first_name }} {{ coach_profile.user_profile.last_name }}</h2>
-                <p>Csapat: {{ coach_profile.team }}</p>
-                <p>Minősítések: {{ coach_profile.qualifications }}</p>
-            </div>
+        <div class="profile-detail">
+            <img src="{% if coach_profile.user_profile.avatar %}{{ coach_profile.user_profile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="User Avatar">
+            <h2>{{ coach_profile.user_profile.first_name }} {{ coach_profile.user_profile.last_name }}</h2>
+            <p>Csapat: {{ coach_profile.team }}</p>
+            <p>Minősítések: {{ coach_profile.qualifications }}</p>
+
+            <!-- Follow/Unfollow Button -->
+            {% if user.is_authenticated %}
+            <form method="POST" action="{% url 'follow_user' coach_profile.user_profile.id %}" class="follow-form">
+                {% csrf_token %}
+                <button type="submit" class="{% if is_following %}unfollow-btn{% else %}follow-btn{% endif %}" data-follow-status="{% if is_following %}true{% else %}false{% endif %}">
+                    {% if is_following %} Kikövetés {% else %} Követés {% endif %}
+                </button>
+            </form>
+            {% endif %}
+        </div>
         {% elif manager_profile %}
-            <div class="profile-detail">
-                <img src="{% if manager_profile.user_profile.avatar %}{% static manager_profile.user_profile.avatar.url %}{% else %}{% static 'images/manager_icon.png' %}{% endif %}" alt="{{ manager_profile.user_profile.first_name }} {{ manager_profile.user_profile.last_name }}">
-                <h2>{{ manager_profile.user_profile.first_name }} {{ manager_profile.user_profile.last_name }}</h2>
-                <p>Csapat: {{ manager_profile.team }}</p>
-                <p>Tapasztalat: {{ manager_profile.experience }}</p>
-            </div>
+        <div class="profile-detail">
+            <img src="{% if manager_profile.user_profile.avatar %}{{ manager_profile.user_profile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="User Avatar">
+            <h2>{{ manager_profile.user_profile.first_name }} {{ manager_profile.user_profile.last_name }}</h2>
+            <p>Csapat: {{ manager_profile.team }}</p>
+            <p>Tapasztalat: {{ manager_profile.experience }}</p>
+
+            <!-- Follow/Unfollow Button -->
+            {% if user.is_authenticated %}
+            <form method="POST" action="{% url 'follow_user' manager_profile.user_profile.id %}" class="follow-form">
+                {% csrf_token %}
+                <button type="submit" class="{% if is_following %}unfollow-btn{% else %}follow-btn{% endif %}" data-follow-status="{% if is_following %}true{% else %}false{% endif %}">
+                    {% if is_following %} Kikövetés {% else %} Követés {% endif %}
+                </button>
+            </form>
+            {% endif %}
+        </div>
         {% else %}
-            <p>Profil nem található.</p>
+        <p>Profil nem található.</p>
         {% endif %}
     </main>
 </body>
+
 </html>

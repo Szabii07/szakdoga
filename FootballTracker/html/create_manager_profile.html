@@ -21,15 +21,19 @@
                     {% endif %}
                 </div>
             {% endfor %}
-
+        
             <!-- Játékosok kiválasztása -->
             <div class="form-group">
                 <button type="button" id="select-players-btn">Játékosok kiválasztása</button>
                 <input type="hidden" id="selected-players" name="players">
+                <div id="selected-players-list" class="selected-players">
+                    <!-- Kiválasztott játékosok itt fognak megjelenni -->
+                </div>
             </div>
-
+        
             <button type="submit">Profil Létrehozása</button>
         </form>
+        
     </div>
 
     <!-- Modal for player selection -->
@@ -37,12 +41,11 @@
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2>Válassz játékosokat</h2>
-            <form id="players-form">
-                <div id="players-list">
-                    <!-- Játékosok listája itt fog megjelenni -->
-                </div>
-                <button type="button" id="save-players-btn">Kiválasztás mentése</button>
-            </form>
+            <input type="text" id="search-box" placeholder="Keresés játékosok között...">
+            <div id="players-list">
+                <!-- Players will be listed here -->
+            </div>
+            <button type="button" id="save-players-btn">Kiválasztás mentése</button>
         </div>
     </div>
 

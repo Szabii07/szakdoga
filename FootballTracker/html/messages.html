@@ -1,0 +1,72 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Üzenetek</title>
+    <link rel="stylesheet" href="{% static 'css/messages.css' %}">
+    <script src="{% static 'js/messages.js' %}" defer></script>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="profile-info">
+                <a href="{% url 'profile_edit' %}" class="profile-link">
+                    <img src="{% if user.userprofile.avatar %}{{ user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="User Avatar">
+                    <span>{{ request.user.userprofile.first_name }} {{ request.user.userprofile.last_name }}</span>
+                </a>
+            </div>
+            <nav class="header-nav">
+                <a href="{% url 'user_filter' %}">Keresés</a>
+                <a href="{% url 'messages_overview' %}">Üzenetek</a>
+                <a href="{% url 'dashboard_redirect' %}">Posztok</a>
+                <a href="{% url 'my_follows' %}">Követéseim</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="message-container">
+            <h2>Üzenetek</h2>
+            <div class="user-list">
+                <ul>
+                    {% for user in users %}
+                    <li>
+                        <a href="{% url 'messages' user_id=user.id %}">
+                            {{ user.username }}
+                        </a>
+                    </li>
+                    {% empty %}
+                    <li>Nincsenek üzenetek.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="message-thread">
+                <h3>{{ selected_user.username }}</h3>
+                <div class="message-list">
+                    {% for message in user_messages %}
+                    <div class="message {% if message.sender == user %}sent{% else %}received{% endif %}">
+                        <strong>{{ message.sender.username }}:</strong> {{ message.content }} <em>({{ message.created_at|date:"Y-m-d H:i" }})</em>
+                    </div>
+                    {% empty %}
+                    <p>Nincsenek üzenetek ezzel a felhasználóval.</p>
+                    {% endfor %}
+                </div>
+                <div class="message-form">
+                    <form method="POST" action="{% url 'messages' user_id=selected_user.id %}">
+                        {% csrf_token %}
+                        {{ form.non_field_errors }}
+                        {{ form.recipient.errors }}
+                        {{ form.recipient }}
+                        {{ form.content.errors }}
+                        {{ form.content }}
+                        <button type="submit">Küldés</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

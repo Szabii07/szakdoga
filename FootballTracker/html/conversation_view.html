@@ -1,0 +1,87 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="hu">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversation with {{ selected_user.username }}</title>
+    <link rel="stylesheet" href="{% static 'css/messages.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+    <header>
+        <div class="header-container">
+            <div class="profile-info">
+                <a href="{% url 'profile_edit' %}" class="profile-link">
+                    <img src="{% if user.userprofile.avatar %}{{ user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="User Avatar">
+                    <div class="profile-details">
+                        <span class="profile-name">{{ request.user.userprofile.first_name }} {{ request.user.userprofile.last_name }}</span>
+                    </div>
+                </a>
+            </div>
+            <nav class="header-nav">
+                <a href="{% url 'dashboard_redirect' %}" class="nav-home">
+                    <i class="fas fa-home"></i>
+                </a>
+            </nav>
+            <div class="header-actions">
+                <a href="{% url 'user_filter' %}">
+                    <i class="fa-solid fa-magnifying-glass"></i>Keresés...</a>
+                <a href="{% url 'messages_overview' %}">Üzenetek</a>
+                <a href="{% url 'my_follows' %}">Követéseim</a>
+            </div>
+        </div>
+    </header>
+    
+    <main>
+        <div class="conversation-layout">
+            <!-- Baloldali beszélgetési lista -->
+            <div class="conversation-list">
+                <h2>Korábbi beszélgetések</h2>
+                <a href="{% url 'new_conversation' %}" class="button">Új üzenet</a>
+                <ul>
+                    {% for conversation_user in conversation_users %}
+                    <li>
+                        <a href="{% url 'conversation_view' user_id=conversation_user.id %}">
+                            <img src="{% if conversation_user.userprofile.avatar %}{{ conversation_user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="Avatar" class="small-avatar">
+                            <span>{{ conversation_user.userprofile.first_name }} {{ conversation_user.userprofile.last_name }}</span>
+                        </a>
+                    </li>
+                    {% empty %}
+                    <li>Nincs korábbi beszélgetés.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Középső rész: üzenetek -->
+            <div class="message-container">
+                <div class="header-container">
+                    <h1>Csevegés vele: {{ selected_user.userprofile.first_name }} {{ selected_user.userprofile.last_name }}</h1>
+                    <a href="{% url 'messages_overview' %}" class="backButton">Vissza</a>
+                </div>
+                <div class="messages">
+                    {% for message in messages %}
+                    <div class="message {% if message.sender == request.user %}sent{% else %}received{% endif %}">
+                        <strong>{{ message.sender.userprofile.first_name }} {{ message.sender.userprofile.last_name }}</strong>
+                        <div class="message-content">{{ message.content }}</div>
+                        <div class="message-time">{{ message.created_at|date:"Y-m-d H:i" }}</div>
+                    </div>
+                    {% empty %}
+                    <p>No messages yet.</p>
+                    {% endfor %}
+                </div>
+                <form method="POST" class="message-form">
+                    {% csrf_token %}
+                    <div class="message-input-container">
+                        {{ form.content }}
+                        <button type="submit" class="sendButton"><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>
