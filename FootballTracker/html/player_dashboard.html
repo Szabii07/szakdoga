@@ -30,27 +30,81 @@
                     <i class="fa-solid fa-magnifying-glass"></i>Keresés...</a>
                 <a href="{% url 'messages_overview' %}">Üzenetek</a>
                 <a href="{% url 'my_follows' %}">Követéseim</a>
+                <a href="{% url 'logout' %}" class="logout-button" title="Kijelentkezés">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
             </div>
         </div>
     </header>
 
     <main>
         <div class="dashboard-container">
+            <!-- Left Side: Team info -->
+            <div class="team-info">
+                <h3>
+                    {% if team %}
+                        <p>{{ team }}</p>
+                    {% else %}
+                        <p>Nincs jelenleg csapatod</p>
+                    {% endif %}
+                </h3>
+            
+                <!-- Coach Section -->
+                <h4>Edző</h4>
+                <ul>
+                    {% if coaches %}
+                        {% for coach in coaches %}
+                            <li class="member-item">
+                                <a href="{% url 'profile_detail' coach.user.id %}" class="member-link">
+                                    <img src="{% if coach.user.avatar %}{{ coach.user.avatar.url }}{% else %}{% static 'images/default_avatar.png' %}{% endif %}" alt="Coach Avatar" class="member-avatar">
+                                    <span>{{ coach.user.first_name }} {{ coach.user.last_name }}</span>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <li>Nincs edző a csapatban.</li>
+                    {% endif %}
+                </ul>
+
+                <!-- Players Section -->
+                <h4>Csapattársak</h4>
+                <ul>
+                    {% if team_players %}
+                        {% for player in team_players %}
+                        <li class="member-item">
+                            <a href="{% url 'profile_detail' player.user_profile.user.id %}" class="member-link">
+                                <img src="{% if player.user_profile.avatar %}{{ player.user_profile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="Player Avatar" class="member-avatar">
+                                <span>{{ player.user_profile.first_name }} {{ player.user_profile.last_name }}</span>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <li>Nincsenek játékosok a csapatban.</li>
+                    {% endif %}
+                </ul>
+            </div>
+
             <!-- Center: Posts -->
             <div class="posts">
                 <h3>Posztok</h3>
                 <div class="post-form">
-                    <form method="POST" action="{% url 'create_post_player' %}" enctype="multipart/form-data">
+                    <form method="POST" action="{% url 'create_post' %}" enctype="multipart/form-data">
                         {% csrf_token %}
                         <textarea name="content" placeholder="Írj egy posztot..." required></textarea>
                         <input type="file" name="image" accept="image/*">
-                        <button type="submit">Post</button>
+                        <button type="submit">Poszt közzététele</button>
                     </form>
                 </div>
+                
                 {% for post in posts %}
-                <div class="post">
+                <div class="post post-{{ post.user.userprofile.role|lower }}">
                     <div class="post-header">
-                        <strong>{{ post.user.username }}</strong> - {{ post.created_at|date:"Y-m-d H:i" }}
+                        <img src="{% if post.user.userprofile.avatar %}{{ post.user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="Post Author Avatar" class="small-avatar">
+                        <strong>
+                            <a href="{% url 'profile_detail' post.user.id %}">
+                                {{ post.user.userprofile.first_name }} {{ post.user.userprofile.last_name }}
+                            </a>
+                        </strong> - {{ post.created_at|date:"Y-m-d H:i" }}
                     </div>
                     <div class="post-content">
                         <p>{{ post.content }}</p>
@@ -61,28 +115,33 @@
                     <div class="post-actions">
                         <form method="POST" action="{% url 'like_post' post.id %}" class="like-form">
                             {% csrf_token %}
-                            <button type="submit" class="like-button" data-post-id="{{ post.id }}">Like</button>
+                            <button type="submit" class="like-button" data-post-id="{{ post.id }}"><i class="fa-regular fa-thumbs-up"></i></button>
                             <span id="like-count-{{ post.id }}">{{ post.get_likes_count }}</span>
                         </form>
                         <form method="POST" action="{% url 'dislike_post' post.id %}" class="dislike-form">
                             {% csrf_token %}
-                            <button type="submit" class="dislike-button" data-post-id="{{ post.id }}">Dislike</button>
+                            <button type="submit" class="dislike-button" data-post-id="{{ post.id }}"><i class="fa-regular fa-thumbs-down"></i></button>
                             <span id="dislike-count-{{ post.id }}">{{ post.get_dislikes_count }}</span>
                         </form>
                     </div>
                     <div class="comments-section">
-                        <h4>Hozzászólások:</h4>
+                        <h4><i class="fa-solid fa-comments"></i>Hozzászólások<i class="fa-solid fa-comments"></i></h4>
                         <div class="comment-list" id="comments-{{ post.id }}">
                             {% for comment in post.comments.all %}
                             <div class="comment">
-                                <strong>{{ comment.user.username }}:</strong> {{ comment.content }} <em>({{ comment.created_at|date:"Y-m-d H:i" }})</em>
+                                <img src="{% if comment.user.userprofile.avatar %}{{ comment.user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="Comment Author Avatar" class="small-avatar">
+                                <strong>
+                                    <a href="{% url 'profile_detail' comment.user.id %}">
+                                        {{ comment.user.userprofile.first_name }} {{ comment.user.userprofile.last_name }}
+                                    </a>
+                                </strong>: {{ comment.content }} <em>({{ comment.created_at|date:"Y-m-d H:i" }})</em>
                             </div>
                             {% endfor %}
                         </div>
                         <form class="comment-form" method="POST" data-post-id="{{ post.id }}">
                             {% csrf_token %}
-                            <textarea name="content" placeholder="Add a comment..." required></textarea>
-                            <button type="submit">Add Comment</button>
+                            <textarea name="content" placeholder="Szólj hozzá..." required></textarea>
+                            <button type="submit">Hozzászólás</button>
                         </form>
                     </div>
                 </div>
@@ -90,20 +149,21 @@
             </div>
 
             <!-- Right Side: Messages -->
-            <div class="messages">
-                <h3>Üzenetek</h3>
-                {% for message in messages %}
-                <div class="message">
-                    <strong>{{ message.sender.username }}:</strong> {{ message.content }} <em>({{ message.created_at|date:"Y-m-d H:i" }})</em>
-                </div>
-                {% endfor %}
-                <div class="message-form">
-                    <form method="POST" action="{% url 'send_message' %}">
-                        {% csrf_token %}
-                        <textarea name="content" placeholder="Write a message..." required></textarea>
-                        <button type="submit">Send</button>
-                    </form>
-                </div>
+            <div class="conversation-list">
+                <h2>Beszélgetéseim</h2>
+                <a href="{% url 'new_conversation' %}" class="button">Új üzenet</a>
+                <ul>
+                    {% for conversation_user in conversation_users %}
+                    <li>
+                        <a href="{% url 'conversation_view' user_id=conversation_user.id %}">
+                            <img src="{% if conversation_user.userprofile.avatar %}{{ conversation_user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="Avatar" class="small-avatar">
+                            <span>{{ conversation_user.userprofile.first_name }} {{ conversation_user.userprofile.last_name }}</span>
+                        </a>
+                    </li>
+                    {% empty %}
+                    <li>Nincs korábbi beszélgetés.</li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
     </main>

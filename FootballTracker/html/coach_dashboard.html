@@ -30,6 +30,9 @@
                     <i class="fa-solid fa-magnifying-glass"></i>Keresés...</a>
                 <a href="{% url 'messages_overview' %}">Üzenetek</a>
                 <a href="{% url 'my_follows' %}">Követéseim</a>
+                <a href="{% url 'logout' %}" class="logout-button" title="Kijelentkezés">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
             </div>
         </div>
     </header>
@@ -45,12 +48,32 @@
                         <p>Nincs jelenleg csapatod</p>
                     {% endif %}
                 </h3>
+            
+                <!-- Coaches Section -->
+                <h4>Edzők</h4>
+                <ul>
+                    {% if team_coaches %}
+                        {% for coach in team_coaches %}
+                        <li class="member-item">
+                            <a href="{% url 'profile_detail' coach.user.id %}" class="member-link">
+                                <img src="{% if coach.user.avatar %}{{ coach.user.avatar.url }}{% else %}{% static 'images/default_avatar.png' %}{% endif %}" alt="Coach Avatar" class="member-avatar">
+                                <span>{{ coach.user.first_name }} {{ coach.user.last_name }}</span>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <li>Nincsenek edzők a csapatban.</li>
+                    {% endif %}
+                </ul>
+            
+                <!-- Players Section -->
+                <h4>Játékosok</h4>
                 <ul>
                     {% if team_players %}
                         {% for player in team_players %}
-                        <li class="player-item">
-                            <a href="{% url 'profile_detail' player.user_profile.user.id %}" class="player-link">
-                                <img src="{% if player.user_profile.avatar %}{{ player.user_profile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="Player Avatar" class="player-avatar">
+                        <li class="member-item">
+                            <a href="{% url 'profile_detail' player.user_profile.user.id %}" class="member-link">
+                                <img src="{% if player.user_profile.avatar %}{{ player.user_profile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="Player Avatar" class="member-avatar">
                                 <span>{{ player.user_profile.first_name }} {{ player.user_profile.last_name }}</span>
                             </a>
                         </li>

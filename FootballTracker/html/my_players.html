@@ -28,7 +28,8 @@
                 <a href="{% url 'user_filter' %}"><i class="fa-solid fa-magnifying-glass"></i>Keresés...</a>
                 <a href="{% url 'messages_overview' %}">Üzenetek</a>
                 <a href="{% url 'my_follows' %}">Követéseim</a>
-                <a href="{%url 'my_players' %}">Játékosaim</a>
+                <a href="{% url 'my_players' %}">Játékosaim</a>
+                <a href="{% url 'logout' %}" class="logout-button" title="Kijelentkezés"><i class="fas fa-sign-out-alt"></i></a>
             </div>
         </div>
     </header>
@@ -36,6 +37,7 @@
     <main>
         <div class="container">
             <h1>Játékosaim</h1>
+            <button id="add-player-button" class="button">Új játékos felvétele</button>
             <div class="players-list">
                 {% if players %}
                     <ul class="user-list">
@@ -46,25 +48,34 @@
                                 </div>
                                 <div class="user-info">
                                     <h3>{{ player.user_profile.first_name }} {{ player.user_profile.last_name }}</h3>
-                                    <form method="POST" action="{% url 'remove_player' player.id %}" class="remove-player-form"></form>
+                                    <form method="POST" action="{% url 'remove_player' player.id %}" class="remove-player-form">
                                         {% csrf_token %}
                                         <button type="submit" class="remove-player-btn">Törlés a játékosaim közül</button>
                                     </form>
 
-                                    <form id="noteForm" method="POST" action="{% url 'save_note' %}">
+                                    <form class="noteForm" method="POST" action="{% url 'save_note' %}">
                                         {% csrf_token %}
                                         <textarea name="note" required rows="3" placeholder="Írj megjegyzést..." class="comment-input"></textarea>
                                         <input type="hidden" name="player_id" value="{{ player.id }}">
                                         <button type="submit" class="save-comment-btn">Megjegyzés mentése</button>
                                     </form>
-                                
-                                    <div id="commentsSection">
-                                        {% for note in player.notes.all %}
+                                    
+                                    <div class="commentsSection" id="commentsSection-{{ player.id }}">
+                                        <h4>
+                                            {{ player.user_profile.first_name }} megjegyzései: 
+                                            <button class="toggle-comments-btn">Megjegyzések megjelenítése</button>
+                                        </h4>
+                                        <div class="comments-container" style="display: none;">
+                                            {% for note in player.notes.all %}
                                             <div class="note-item" id="note-{{ note.id }}">
                                                 <p>{{ note.text }}</p>
+                                                <p class="note-date">{{ note.created_at|date:"Y.m.d" }}</p>
                                                 <button class="delete-note-btn" data-note-id="{{ note.id }}">Törlés</button>
                                             </div>
+                                        {% empty %}
+                                            <p>Nincsenek megjegyzések.</p>
                                         {% endfor %}
+                                        </div>
                                     </div>
                                 </div>
                             </li>
@@ -74,8 +85,27 @@
                     <p>Nincsenek játékosok a listádban.</p>
                 {% endif %}
             </div>
+
+            <!-- Modal for adding an existing player -->
+            <div id="add-player-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close-button">&times;</span>
+                    <h2>Meglévő játékos hozzáadása</h2>
+                    <form method="POST" action="{% url 'add_existing_player' %}?next={{ request.path }}">
+                        {% csrf_token %}
+                        <label for="player">Válassz játékost:</label>
+                        <select id="player" name="player" required>
+                            {% for player in existing_players %}
+                            <option value="{{ player.id }}">{{ player.user_profile.first_name }} {{ player.user_profile.last_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="modal-button">Játékos hozzáadása</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </main>
-
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{% static 'js/my_players.js' %}" defer></script>
 </body>
 </html>

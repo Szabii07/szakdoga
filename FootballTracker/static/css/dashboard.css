@@ -154,7 +154,21 @@ main {
     display: inline;
 }
 
-.post-actions button {
+.dislike-button{
+    padding: 5px 10px;
+    background-color: #db1d1d;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.dislike-button:hover {
+    background-color: #8d2222;
+}
+
+.like-button {
     padding: 5px 10px;
     background-color: #0a84ca;
     color: #fff;
@@ -164,7 +178,7 @@ main {
     margin-right: 10px;
 }
 
-.post-actions button:hover {
+.like-button:hover {
     background-color: #04456b;
 }
 
@@ -256,20 +270,21 @@ main {
     margin: 0;
 }
 
-.team-info .player-item {
+.team-info .member-item {
     display: flex;
     align-items: center;
     margin-bottom: 10px;
+    margin-top: 10px;
 }
 
-.team-info .player-link {
+.team-info .member-link {
     text-decoration: none;
     color: #333;
     display: flex;
     align-items: center;
 }
 
-.team-info .player-avatar {
+.team-info .member-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -277,12 +292,12 @@ main {
     object-fit: cover;
 }
 
-.team-info .player-link span {
+.team-info .member-link span {
     font-size: 16px;
     font-weight: bold;
 }
 
-.team-info .player-link:hover span {
+.team-info .member-link:hover span {
     color: #007bff;
 }
 
@@ -327,7 +342,7 @@ main {
 
 .conversation-list a {
     text-decoration: none;
-    color: #333;
+    color: white;
     display: flex;
     align-items: center;
 }

@@ -61,7 +61,7 @@ class Team(models.Model):
 class Coach(models.Model):
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
     birthdate = models.DateField(verbose_name="Születési idő")
-    team = models.OneToOneField(Team, on_delete=models.SET_NULL, null=True, blank=True, related_name='coach_profile')
+    team = models.ForeignKey(Team, on_delete=models.SET_NULL, null=True, blank=True, related_name='coach_profile')
     qualifications = models.TextField(blank=True)
 
     def __str__(self):
@@ -141,8 +141,8 @@ class Message(models.Model):
 
 class Note(models.Model):
     text = models.TextField()
-    player = models.ForeignKey(PlayerProfile, on_delete=models.CASCADE, default=PlayerProfile.objects.first().id)
-    manager = models.ForeignKey(Manager, on_delete=models.CASCADE, default=Manager.objects.first().id)
+    player = models.ForeignKey(PlayerProfile, related_name='notes', on_delete=models.CASCADE)
+    manager = models.ForeignKey(Manager, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
 
     def __str__(self):

@@ -3,11 +3,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.forms import ValidationError
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth import authenticate, login as auth_login, logout
 from django.contrib.auth.decorators import login_required
 from .decorators import role_required
 from django.views.decorators.http import require_POST, require_GET
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models.signals import post_save
@@ -23,7 +23,7 @@ def index_view(request):
 
     if request.method == "POST":
         if 'signup' in request.POST:
-            signup_form = SignupForm(request.POST)  # Handle signup form
+            signup_form = SignupForm(request.POST)
             if signup_form.is_valid():
                 user = signup_form.save()
                 auth_login(request, user)
@@ -33,7 +33,7 @@ def index_view(request):
                 messages.error(request, 'Sikertelen regisztráció. Kérlek, ellenőrizd az adatokat.')
 
         elif 'login' in request.POST:
-            login_form = LoginForm(request, data=request.POST)  # Handle login form
+            login_form = LoginForm(request, data=request.POST)
             if login_form.is_valid():
                 user = login_form.get_user()
                 auth_login(request, user)
@@ -140,7 +140,7 @@ def create_player_profile(request):
                 messages.error(request, "Nincs felhasználói profil.")
                 return redirect('create_player_profile')
 
-            # Handle team creation or update
+            # Csapatlétrehozás/update
             team_name = profile_form.cleaned_data.get('team_name').strip()
             if team_name:
                 team, created = Team.objects.get_or_create(name=team_name)
@@ -150,18 +150,18 @@ def create_player_profile(request):
             
             player_profile.save()
 
-            # Handle positions
+            # Pozíciók
             positions = request.POST.get('position', '').split(',')
-            player_profile.position = ','.join(positions)  # Save as comma-separated string
+            player_profile.position = ','.join(positions)
             player_profile.save()
 
-            # Add player to team
+            # Játékos csapathoz való hozzáadása
             if player_profile.team:
                 player_profile.team.players.add(player_profile)
 
             return redirect('player_dashboard')
         else:
-            print(profile_form.errors)  # Print form errors to console
+            print(profile_form.errors)
     else:
         profile_form = PlayerProfileForm()
     
@@ -178,23 +178,21 @@ def create_coach_profile(request):
             coach = form.save(commit=False)
             coach.user = user_profile
             
-            # Handle team association or creation
+            # Csapat létrehozása/frissítése
             team_choice = form.cleaned_data.get('team_choice')
             team_name = form.cleaned_data.get('team_name')
 
-            # Save the coach object first
             coach.save()
             
             if team_choice:
-                # Use the selected team
+                # Kiválasztott csapat használata
                 team = team_choice
             elif team_name:
-                # Create a new team with the provided name
+                # Új csapat létrehozása
                 team, created = Team.objects.get_or_create(name=team_name)
             else:
                 team = None
 
-            # Update the coach and team association
             if team:
                 team.coach = coach
                 team.save()
@@ -250,85 +248,15 @@ def search_players(request):
 @role_required('player')
 @login_required
 def player_dashboard(request):
-    
-    # Get user avatar URL
-    if hasattr(request.user, 'profile'):
-        user_avatar_url = request.user.profile.avatar.url
-    else:
-        user_avatar_url = '{% static "avatars/default_avatar.png" %}'
+    player_profile = PlayerProfile.objects.get(user_profile__user=request.user)
+    teamName = player_profile.team_name
+    team = Team.objects.get(name=teamName)
 
-    try:
-        # Get the UserProfile associated with the current user
-        user_profile = UserProfile.objects.get(user=request.user)
-        
-        # Get the PlayerProfile associated with the UserProfile
-        player_profile = PlayerProfile.objects.get(user_profile=user_profile)
-        
-        # Get posts related to the current player
-        posts = Post.objects.filter(user=player_profile.user_profile.user).order_by('-created_at')
-        
-    except UserProfile.DoesNotExist:
-        messages.error(request, "Nincs felhasználói profil.")
-        return redirect('create_user_profile')  
-    
-    except PlayerProfile.DoesNotExist:
-        messages.error(request, "Nincs játékos profil.")
-        return redirect('create_player_profile')
-    
-    # Handle post requests for creating posts and comments
-    if request.method == 'POST':
-        if 'post_content' in request.POST:
-            form = PostForm(request.POST, request.FILES)
-            if form.is_valid():
-                new_post = form.save(commit=False)
-                new_post.user = request.user  # Set the user to the current logged-in user
-                new_post.save()
-                return redirect('player_dashboard')
-        elif 'comment_content' in request.POST:
-            post_id = request.POST.get('post_id')
-            try:
-                post = Post.objects.get(id=post_id)
-            except Post.DoesNotExist:
-                messages.error(request, "Post not found.")
-                return redirect('player_dashboard')
-                
-            form = CommentForm(request.POST)
-            if form.is_valid():
-                new_comment = form.save(commit=False)
-                new_comment.post = post
-                new_comment.user = request.user
-                new_comment.save()
-                return redirect('player_dashboard')
-    
-    else:
-        post_form = PostForm()
-        comment_form = CommentForm()
-    
-    context = {
-        'posts': posts,
-        'post_form': post_form,
-        'comment_form': comment_form
-    }
-    
-    return render(request, 'player_dashboard.html', context)
-
-
-
-@role_required('coach')
-@login_required
-def coach_dashboard(request):
-    # Retrieve all posts ordered by creation date
     posts = Post.objects.all().order_by('-created_at')
 
-    # Get the coach's team
-    try:
-        coach = Coach.objects.get(user=request.user.userprofile)  # Lekérdezzük a coach profilt
-        team = coach.team  # A coach csapatát kérjük le
-        team_players = PlayerProfile.objects.filter(team_name=team.name)
-    except Coach.DoesNotExist:
-        coach = None
-        team = None
-        team_players = []
+    # Csapattagok kigyűjtése
+    team_players = PlayerProfile.objects.filter(team_name=teamName).exclude(user_profile__user=request.user)
+    coaches = Coach.objects.filter(team=team)
 
     conversation_users = User.objects.filter(
         Q(sent_messages__recipient=request.user) | 
@@ -341,10 +269,64 @@ def coach_dashboard(request):
         'comment_form': CommentForm(),
         'team': team,
         'team_players': team_players,
+        'coaches': coaches,
         'conversation_users': conversation_users,
     }
 
-    # Handle post requests for creating posts and comments
+    # Posztok kezelése
+    if request.method == 'POST':
+        if 'post_content' in request.POST:
+            form = PostForm(request.POST, request.FILES)
+            if form.is_valid():
+                new_post = form.save(commit=False)
+                new_post.user = request.user
+                new_post.save()
+                return redirect('player_dashboard')
+        elif 'comment_content' in request.POST:
+            post_id = request.POST.get('post_id')
+            post = Post.objects.get(id=post_id)
+            form = CommentForm(request.POST)
+            if form.is_valid():
+                new_comment = form.save(commit=False)
+                new_comment.post = post
+                new_comment.user = request.user
+                new_comment.save()
+                return redirect('player_dashboard')
+
+    return render(request, 'player_dashboard.html', context)
+
+@role_required('coach')
+@login_required
+def coach_dashboard(request):
+    posts = Post.objects.all().order_by('-created_at')
+
+    try:
+        coach = Coach.objects.get(user=request.user.userprofile)  # Coach profil lekérése
+        team = coach.team  # Coach csapatának lekérése
+        team_players = PlayerProfile.objects.filter(team_name=team.name)
+        team_coaches = Coach.objects.filter(team=team).exclude(user=request.user.userprofile)
+    except Coach.DoesNotExist:
+        coach = None
+        team = None
+        team_players = []
+        team_coaches = []
+
+    conversation_users = User.objects.filter(
+        Q(sent_messages__recipient=request.user) | 
+        Q(received_messages__sender=request.user)
+    ).distinct()
+
+    context = {
+        'posts': posts,
+        'post_form': PostForm(),
+        'comment_form': CommentForm(),
+        'team': team,
+        'team_players': team_players,
+        'team_coaches':team_coaches,
+        'conversation_users': conversation_users,
+    }
+
+    # Posztok kezelése
     if request.method == 'POST':
         if 'post_content' in request.POST:
             form = PostForm(request.POST, request.FILES)
@@ -374,14 +356,14 @@ def manager_dashboard(request):
         manager = Manager.objects.get(user=request.user.userprofile)
         team_players = manager.players.all()
         
-        # Meglévő játékosok lekérdezése, akik nem tagjai a csapatnak
+        # Meglévő játékosok lekérdezése, akik nem tagjai a menedzsernek
         existing_players = PlayerProfile.objects.exclude(id__in=team_players.values_list('id', flat=True))
 
     except Manager.DoesNotExist:
         team_players = []
-        existing_players = PlayerProfile.objects.all()  # Ha nincs menedzser, minden játékos elérhető
+        existing_players = PlayerProfile.objects.all()  # Ha nincs menedzser, minden játékos elérhető, de ez kizárt, mivel role_requirednek menedzser van megadva
 
-    # Lekérdezzük a korábbi beszélgető partnereket
+    # Korábbi emberek lekérdezése, akikkel beszélgetett már
     conversation_users = User.objects.filter(
         Q(sent_messages__recipient=request.user) | 
         Q(received_messages__sender=request.user)
@@ -515,13 +497,11 @@ def create_post_player(request):
 
 @login_required
 def profile_detail(request, user_id):
-    # Fetch the user profile based on the user ID
     user_profile = get_object_or_404(UserProfile, user__id=user_id)
 
-    # Ellenőrizzük, hogy a bejelentkezett felhasználó követi-e
+    # Bejelentkezett felhasználó követi-e
     is_following = user_profile in request.user.userprofile.following.all()
 
-    # Try to fetch related profiles (PlayerProfile, CoachProfile, ManagerProfile)
     try:
         player_profile = PlayerProfile.objects.get(user_profile=user_profile)
     except PlayerProfile.DoesNotExist:
@@ -552,7 +532,6 @@ def profile_detail(request, user_id):
 
 @login_required
 def my_follows(request):
-    # Accessing the user's related UserProfile
     followed_users = request.user.userprofile.following.all()
 
     context = {
@@ -596,16 +575,15 @@ def messages_overview(request):
 
 @login_required
 def conversation_view(request, user_id):
-    # Get the selected user
     selected_user = get_object_or_404(User, id=user_id)
     
-    # Get all messages between the logged-in user and the selected user
+    # Üzenetek lekérése a bejelentkezett és a kiválasztott ember között
     messages = Message.objects.filter(
         (Q(sender=request.user) & Q(recipient=selected_user)) |
         (Q(sender=selected_user) & Q(recipient=request.user))
     ).order_by('created_at')
     
-    # Get the users the logged-in user has had conversations with
+    # Emberek lekérése
     conversation_users = User.objects.filter(
         Q(sent_messages__recipient=request.user) | 
         Q(received_messages__sender=request.user)
@@ -647,12 +625,12 @@ def new_conversation_view(request):
 @login_required
 def follow_user(request, user_id):
     user_to_follow = get_object_or_404(UserProfile, pk=user_id)
-    current_user_profile = request.user.userprofile  # Access the current user's profile
+    current_user_profile = request.user.userprofile
 
-    if current_user_profile != user_to_follow:  # Prevent self-follow
+    if current_user_profile != user_to_follow:  # Magát ne tudja követni
         current_user_profile.following.add(user_to_follow)
 
-    # Ellenőrizzük, hogy már követi-e
+    # Követi-e
     if user_to_follow not in request.user.userprofile.following.all():
         request.user.userprofile.following.add(user_to_follow)
     
@@ -661,12 +639,12 @@ def follow_user(request, user_id):
 @login_required
 def unfollow_user(request, user_id):
     user_to_unfollow = get_object_or_404(UserProfile, pk=user_id)
-    current_user_profile = request.user.userprofile  # Access the current user's profile
+    current_user_profile = request.user.userprofile
 
-    if current_user_profile != user_to_unfollow:  # Prevent self-unfollow
+    if current_user_profile != user_to_unfollow:  # Magát ne tudja követni
         current_user_profile.following.remove(user_to_unfollow)
     
-    # Ellenőrizzük, hogy követi-e, mielőtt kikövetnénk
+    # Megnézzük h követi-e, mielőtt kikövetnénk
     if user_to_unfollow in request.user.userprofile.following.all():
         request.user.userprofile.following.remove(user_to_unfollow)
 
@@ -679,34 +657,64 @@ def create_post(request):
         image = request.FILES.get('image')
         post = Post(user=request.user, content=content, image=image)
         post.save()
-        return redirect('coach_dashboard')
-    return redirect('coach_dashboard')
+        return redirect('dashboard_redirect')
+    return redirect('dashboard_redirect')
 
 @require_POST
 def like_post(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     user = request.user
 
-    if Like.objects.filter(post=post, user=user).exists():
-        return JsonResponse({'success': True, 'like_count': post.get_likes_count(), 'dislike_count': post.get_dislikes_count()})
+    # Ha már dislikeolta
+    if Dislike.objects.filter(post=post, user=user).exists():
+        # Ha igen, tűnjön el
+        Dislike.objects.filter(post=post, user=user).delete()
 
-    Dislike.objects.filter(post=post, user=user).delete()
-    Like.objects.create(post=post, user=user)
+    like, created = Like.objects.get_or_create(post=post, user=user)
+    if not created:  # Ha már likeolta, tűnjön el
+        like.delete()
+        liked = False
+    else:
+        liked = True
 
-    return JsonResponse({'success': True, 'like_count': post.get_likes_count(), 'dislike_count': post.get_dislikes_count()})
+    # Számláló update
+    like_count = post.get_likes_count()
+    dislike_count = post.get_dislikes_count()
+
+    return JsonResponse({
+        'success': True,
+        'like_count': like_count,
+        'dislike_count': dislike_count,
+        'liked': liked,
+    })
 
 @require_POST
 def dislike_post(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     user = request.user
 
-    if Dislike.objects.filter(post=post, user=user).exists():
-        return JsonResponse({'success': True, 'like_count': post.get_likes_count(), 'dislike_count': post.get_dislikes_count()})
+    # Ha már likeolta
+    if Like.objects.filter(post=post, user=user).exists():
+        # Ha igen, tűnjön el
+        Like.objects.filter(post=post, user=user).delete()
 
-    Like.objects.filter(post=post, user=user).delete()
-    Dislike.objects.create(post=post, user=user)
+    dislike, created = Dislike.objects.get_or_create(post=post, user=user)
+    if not created:  # Ha dislikeolta, tűnjön el
+        dislike.delete()
+        disliked = False
+    else:
+        disliked = True
 
-    return JsonResponse({'success': True, 'like_count': post.get_likes_count(), 'dislike_count': post.get_dislikes_count()})
+    # Számláló update
+    like_count = post.get_likes_count()
+    dislike_count = post.get_dislikes_count()
+
+    return JsonResponse({
+        'success': True,
+        'like_count': like_count,
+        'dislike_count': dislike_count,
+        'disliked': disliked,
+    })
 
 @require_POST
 def add_comment(request, post_id):
@@ -743,33 +751,72 @@ def get_player_name(request):
 def add_existing_player(request):
     if request.method == 'POST':
         player_id = request.POST.get('player')
+        next_url = request.GET.get('next', 'manager_dashboard')
+
         try:
             player = PlayerProfile.objects.get(id=player_id)
             manager = Manager.objects.get(user=request.user.userprofile)
             manager.players.add(player)
+            messages.success(request, "A játékos sikeresen hozzáadva.")
         except PlayerProfile.DoesNotExist:
             messages.error(request, "A kiválasztott játékos nem található.")
         except Manager.DoesNotExist:
             messages.error(request, "Menedzser profil nem található.")
 
-        return redirect('manager_dashboard')
+        return redirect(next_url)
     
 
 @role_required('manager')
 @login_required
 def my_players(request):
-    user_profile = request.user.userprofile
+    user_profile = UserProfile.objects.get(user=request.user)
 
     if user_profile.role == 'manager':
         try:
             manager_instance = Manager.objects.get(user=user_profile)
-            players = PlayerProfile.objects.filter(managers=manager_instance)
+
+            # Manager játékosainak lekérése
+            players = PlayerProfile.objects.filter(managers=manager_instance).prefetch_related(
+                Prefetch('notes', queryset=Note.objects.filter(manager=manager_instance))
+            )
+
+            # Nem a manager játékosainak lekérése
+            existing_players = PlayerProfile.objects.exclude(managers=manager_instance)
         except Manager.DoesNotExist:
             players = PlayerProfile.objects.none()
+            existing_players = PlayerProfile.objects.all()
     else:
         players = PlayerProfile.objects.none()
+        existing_players = PlayerProfile.objects.none()
 
-    return render(request, 'my_players.html', {'players': players})
+    return render(request, 'my_players.html', {
+        'players': players,
+        'existing_players': existing_players
+    })
+
+
+@login_required
+def save_note(request):
+    if request.method == 'POST':
+        player_id = request.POST.get('player_id')
+        note_text = request.POST.get('note')
+
+        try:
+            manager = Manager.objects.get(user=request.user.userprofile)
+            player = PlayerProfile.objects.get(id=player_id)
+
+            note = Note.objects.create(player=player, manager=manager, text=note_text)
+
+            return JsonResponse({'note_id': note.id, 'note': note.text})
+        except (PlayerProfile.DoesNotExist, Manager.DoesNotExist):
+            return JsonResponse({'error': 'Player or Manager not found'}, status=404)
+
+@login_required
+def delete_note(request, note_id):
+    if request.method == 'POST':
+        note = Note.objects.get(id=note_id)
+        note.delete()
+        return JsonResponse({'status': 'success'})
 
 @role_required('manager')
 @login_required
@@ -784,39 +831,8 @@ def remove_player(request, player_id):
 
     return redirect('my_players')
 
-@role_required('manager')
 @login_required
-def save_note(request):
-    if request.method == 'POST':
-        note_text = request.POST.get('note')
-        player_id = request.POST.get('player_id')
-
-        if not player_id:
-            return JsonResponse({'error': 'player_id is missing'}, status=400)
-
-        try:
-            player_id = int(player_id)
-        except ValueError:
-            return JsonResponse({'error': 'Invalid player_id'}, status=400)
-
-        player = get_object_or_404(PlayerProfile, id=player_id)
-        manager = request.user.userprofile.manager
-
-        if manager is None:
-            return JsonResponse({'error': 'Manager not found'}, status=400)
-
-        note = Note.objects.create(text=note_text, manager=manager, player=player)
-        return JsonResponse({'note': note.text, 'note_id': note.id})
-
-    return JsonResponse({'error': 'Invalid request'}, status=400)
-
-@role_required('manager')
-@login_required
-def delete_note(request, note_id):
-    note = get_object_or_404(Note, id=note_id)
-
-    if request.user.manager != note.manager:
-        return JsonResponse({'error': 'Not authorized'}, status=403)
-
-    note.delete()
-    return JsonResponse({'message': 'Megjegyzés törölve'})
+def custom_logout_view(request):
+    if request.method == 'POST' or request.method == 'GET':
+        logout(request)
+        return redirect('index')

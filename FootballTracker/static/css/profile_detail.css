@@ -7,38 +7,65 @@ body {
 header {
     background-color: #333;
     color: #fff;
-    padding: 10px 0;
+    padding: 10px 20px;
 }
 
 .header-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
 }
+
 
 .profile-info {
     display: flex;
     align-items: center;
 }
 
-.profile-info img {
-    width: 50px;
-    height: 50px;
+.profile-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: #fff;
+}
+
+.profile-link img {
     border-radius: 50%;
+    width: 40px;
+    height: 40px;
     margin-right: 10px;
 }
 
-.header-nav a {
-    color: #fff;
-    text-decoration: none;
-    margin: 0 15px;
+.profile-details {
+    display: flex;
+    flex-direction: column;
 }
 
-.header-nav a:hover {
-    text-decoration: underline;
+.profile-name {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.header-nav {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.nav-home {
+    font-size: 24px;
+    color: #fff;
+    text-align: center;
+}
+
+.header-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.header-actions a {
+    text-decoration: none;
+    color: #fff;
 }
 
 main {
@@ -57,9 +84,10 @@ main {
 }
 
 .profile-detail img {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
+    width: 500px;
+    height: 500px;
+    object-fit:contain;
+    border-radius: 200%;
 }
 
 .profile-detail h2 {

@@ -52,7 +52,7 @@ urlpatterns = [
     path('my_players/', views.my_players, name="my_players"),
     path('save_note/', views.save_note, name='save_note'),
     path('delete-note/<int:note_id>/', views.delete_note, name='delete_note'),
-
+    path('logout/', views.custom_logout_view, name='logout'),
     ]
 
 if settings.DEBUG:

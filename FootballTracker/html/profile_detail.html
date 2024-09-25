@@ -32,6 +32,9 @@
                     <i class="fa-solid fa-magnifying-glass"></i>Keresés...</a>
                 <a href="{% url 'messages_overview' %}">Üzenetek</a>
                 <a href="{% url 'my_follows' %}">Követéseim</a>
+                <a href="{% url 'logout' %}" class="logout-button" title="Kijelentkezés"></a>
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
             </div>
         </div>
     </header>
@@ -41,6 +44,7 @@
         <div class="profile-detail">
             <img src="{% if player_profile.user_profile.avatar %}{{ player_profile.user_profile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="User Avatar">
             <h2>{{ player_profile.user_profile.first_name }} {{ player_profile.user_profile.last_name }}</h2>
+            <p>Csapat: <strong>{{ player_profile.team_name }}</strong></p>
             <p>Magasság: {{ player_profile.height }} cm</p>
             <p>Poszt: {{ player_profile.position }}</p>
             <p>Születési idő: {{ player_profile.birthdate }}</p>
@@ -58,14 +62,14 @@
         </div>
         {% elif coach_profile %}
         <div class="profile-detail">
-            <img src="{% if coach_profile.user_profile.avatar %}{{ coach_profile.user_profile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="User Avatar">
-            <h2>{{ coach_profile.user_profile.first_name }} {{ coach_profile.user_profile.last_name }}</h2>
-            <p>Csapat: {{ coach_profile.team }}</p>
+            <img src="{% if coach_profile.user.avatar %}{{ coach_profile.user.avatar.url }}{% else %}{% static 'images/default_avatar.png' %}{% endif %}" alt="Coach Avatar" class="member-avatar">
+            <h2>{{ coach_profile.user.first_name }} {{ coach_profile.user.last_name }}</h2>
+            <p>Csapat: <strong>{{ coach_profile.team }}</strong></p>
             <p>Minősítések: {{ coach_profile.qualifications }}</p>
 
             <!-- Follow/Unfollow Button -->
             {% if user.is_authenticated %}
-            <form method="POST" action="{% url 'follow_user' coach_profile.user_profile.id %}" class="follow-form">
+            <form method="POST" action="{% url 'follow_user' coach_profile.user.id %}" class="follow-form">
                 {% csrf_token %}
                 <button type="submit" class="{% if is_following %}unfollow-btn{% else %}follow-btn{% endif %}" data-follow-status="{% if is_following %}true{% else %}false{% endif %}">
                     {% if is_following %} Kikövetés {% else %} Követés {% endif %}
@@ -75,14 +79,14 @@
         </div>
         {% elif manager_profile %}
         <div class="profile-detail">
-            <img src="{% if manager_profile.user_profile.avatar %}{{ manager_profile.user_profile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="User Avatar">
-            <h2>{{ manager_profile.user_profile.first_name }} {{ manager_profile.user_profile.last_name }}</h2>
+            <img src="{% if manager_profile.user.avatar %}{{ manager_profile.user.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="User Avatar">
+            <h2>{{ manager_profile.user.first_name }} {{ manager_profile.user.last_name }}</h2>
             <p>Csapat: {{ manager_profile.team }}</p>
             <p>Tapasztalat: {{ manager_profile.experience }}</p>
 
             <!-- Follow/Unfollow Button -->
             {% if user.is_authenticated %}
-            <form method="POST" action="{% url 'follow_user' manager_profile.user_profile.id %}" class="follow-form">
+            <form method="POST" action="{% url 'follow_user' manager_profile.user.id %}" class="follow-form">
                 {% csrf_token %}
                 <button type="submit" class="{% if is_following %}unfollow-btn{% else %}follow-btn{% endif %}" data-follow-status="{% if is_following %}true{% else %}false{% endif %}">
                     {% if is_following %} Kikövetés {% else %} Követés {% endif %}

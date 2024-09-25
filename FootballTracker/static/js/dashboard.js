@@ -119,25 +119,4 @@ document.addEventListener("DOMContentLoaded", function() {
             removePlayer(playerId);
         });
     });
-
-    function removePlayer(playerId) {
-        // Make a request to the server to remove the player
-        fetch(`/remove_player/${playerId}/`, { // Adjust the URL as needed
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}', // Include CSRF token
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ player_id: playerId })
-        })
-        .then(response => {
-            if (response.ok) {
-                // Remove the player from the UI
-                const playerItem = document.querySelector(`button[data-player-id="${playerId}"]`).parentElement;
-                playerItem.remove();
-            } else {
-                console.error('Error removing player');
-            }
-        });
-    }
 });

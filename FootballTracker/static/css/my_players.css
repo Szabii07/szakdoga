@@ -185,20 +185,47 @@ header {
 .note-item {
     margin-bottom: 10px;
     padding: 10px;
-    background-color: #f0f0f0;
+    background-color: #d8dfdf;
     border-radius: 5px;
 }
 
-.delete-note-btn {
-    background-color: red;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    cursor: pointer;
+.commentsSection {
+    margin-top: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #f9f9f9;
 }
 
-.remove-player-btn {
-    background-color: #d32f2f;
+.comments-container {
+    padding: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.toggle-comments-btn {
+    background-color: #333;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin: 10px 0;
+}
+
+.toggle-comments-btn:hover {
+    background-color: #585858;
+}
+
+.note-date {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 5px;
+}
+
+.delete-note-btn {
+    background-color: #b93232;
     color: white;
     padding: 5px;
     border: none;
@@ -208,5 +235,62 @@ header {
 }
 
 .remove-player-btn {
-    background-color: #f44336;
+    background-color: #b93232;
+    color: white;
+    padding: 5px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 5px;
+}
+
+#add-player-button {    
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    display: inline-block;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+#add-player-button:hover {
+    background-color: #4cae4c;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding-top: 60px;
+}
+
+.modal-content {
+    background-color: #ffffff;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    width: 400px;
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
 }

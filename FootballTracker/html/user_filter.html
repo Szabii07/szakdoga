@@ -29,6 +29,9 @@
                     <i class="fa-solid fa-magnifying-glass"></i>Keresés...</a>
                 <a href="{% url 'messages_overview' %}">Üzenetek</a>
                 <a href="{% url 'my_follows' %}">Követéseim</a>
+                <a href="{% url 'logout' %}" class="logout-button" title="Kijelentkezés"></a>
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
             </div>
         </div>
     </header>
@@ -93,15 +96,13 @@
                             <img src="{% if player.user_profile.avatar %}{{ player.user_profile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}">
                             <div class="details">
                                 <h3>{{ player.user_profile.first_name }} {{ player.user_profile.last_name }}</h3>
+                                <p><strong>{{ player.team_name }}</strong></p>
                                 <p>Magasság: {{ player.height }} cm</p>
                                 <p>Poszt: {{ player.position }}</p>
                                 <p>Születési idő: {{ player.birthdate }}</p>
                                 <p>Keres csapatot: {{ player.looking_for_team|yesno:"Igen, Nem" }}</p>
                             </div>
                         </a>
-                        <button class="follow-btn" data-user-id="{{ player.user_profile.id }}" data-followed="{% if request.user in player.followers.all %}true{% else %}false{% endif %}">
-                            {% if request.user in player.followers.all %}Kikövetés{% else %}Követés{% endif %}
-                        </button>
                     </div>
                 {% empty %}
                     <p>Nincsenek találatok.</p>
@@ -110,16 +111,13 @@
                 {% for coach in coaches %}
                     <div class="user-card">
                         <a href="{% url 'profile_detail' coach.user.id %}">
-                            <img src="{% if coach.userprofile.avatar %}{{ coach.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}">
+                            <img src="{% if coach.user.avatar %}{{ coach.user.avatar.url }}{% else %}{% static 'images/default_avatar.png' %}{% endif %}" alt="Coach Avatar" class="member-avatar">
                             <div class="details">
                                 <h3>{{ coach.user.first_name }} {{ coach.user.last_name }}</h3>
                                 <p>Csapat: {{ coach.team }}</p>
                                 <p>Minősítések: {{ coach.qualifications }}</p>
                             </div>
                         </a>
-                        <button class="follow-btn" data-user-id="{{ coach.user.id }}" data-followed="{% if request.user in coach.followers.all %}true{% else %}false{% endif %}">
-                            {% if request.user in coach.followers.all %}Kikövetés{% else %}Követés{% endif %}
-                        </button>
                     </div>
                 {% empty %}
                     <p>Nincsenek találatok.</p>
@@ -128,15 +126,11 @@
                 {% for manager in managers %}
                     <div class="user-card">
                         <a href="{% url 'profile_detail' manager.user.id %}">
-                            <img src="{% if manager.userprofile.avatar %}{{ manager.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}">
+                            <img src="{% if manager.user.avatar %}{{ manager.user.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}">
                             <div class="details">
                                 <h3>{{ manager.user.first_name }} {{ manager.user.last_name }}</h3>
-                                <p>Csapat: {{ manager.team }}</p>
                             </div>
                         </a>
-                        <button class="follow-btn" data-user-id="{{ manager.user.id }}" data-followed="{% if request.user in manager.followers.all %}true{% else %}false{% endif %}">
-                            {% if request.user in manager.followers.all %}Kikövetés{% else %}Követés{% endif %}
-                        </button>
                     </div>
                 {% empty %}
                     <p>Nincsenek találatok.</p>
