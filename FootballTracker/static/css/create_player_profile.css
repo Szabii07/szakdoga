@@ -1,9 +1,9 @@
 #positions-modal,
 #experience-modal {
-    position: fixed;
+    position:relative;
     top: 0;
     left: 0;
-    width: 100%;
+    width: 60%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
 }
@@ -37,4 +37,16 @@
     width: 48%;
     margin: 1%;
     box-sizing: border-box;
+}
+
+@keyframes show {
+    0%, 49.99% {
+        opacity: 0;
+        z-index: 1;
+    }
+    
+    50%, 100% {
+        opacity: 1;
+        z-index: 5;
+    }
 }
