@@ -131,29 +131,10 @@ def create_player_profile(request):
     user_profile = get_object_or_404(UserProfile, user=request.user)
 
     if request.method == 'POST':
-<<<<<<< HEAD
         form = PlayerProfileForm(request.POST)
         if form.is_valid():
             player_profile = form.save(commit=False)
             player_profile.user_profile = user_profile
-=======
-        profile_form = PlayerProfileForm(request.POST, request.FILES)
-        if profile_form.is_valid():
-            player_profile = profile_form.save(commit=False)
-            try:
-                player_profile.user_profile = UserProfile.objects.get(user=request.user)
-            except UserProfile.DoesNotExist:
-                messages.error(request, "Nincs felhasználói profil.")
-                return redirect('create_player_profile')
-
-            # Csapatlétrehozás/update
-            team_name = profile_form.cleaned_data.get('team_name').strip()
-            if team_name:
-                team, created = Team.objects.get_or_create(name=team_name)
-                player_profile.team = team
-            else:
-                player_profile.team = None
->>>>>>> ea9aa5dc1c2b5424f1fb71ac9fb60f3459e0801c
             
             # Team creation/update logic
             team_choice = form.cleaned_data.get('team_choice')
@@ -161,7 +142,6 @@ def create_player_profile(request):
 
             player_profile.save()
 
-<<<<<<< HEAD
             if team_choice:
                 # Use selected team
                 team = team_choice
@@ -176,8 +156,6 @@ def create_player_profile(request):
                 player_profile.team_name = team.name  # Optionally store the team name in player profile
                 player_profile.save()
 
-=======
->>>>>>> ea9aa5dc1c2b5424f1fb71ac9fb60f3459e0801c
             # Pozíciók
             positions = request.POST.get('position', '').split(',')
             player_profile.position = ','.join(positions)
@@ -280,14 +258,11 @@ def player_dashboard(request):
     teamName = player_profile.team_name
     team = Team.objects.get(name=teamName)
 
-<<<<<<< HEAD
     try:
         team = Team.objects.get(name=teamName)
     except Team.DoesNotExist:
         team = None
 
-=======
->>>>>>> ea9aa5dc1c2b5424f1fb71ac9fb60f3459e0801c
     posts = Post.objects.all().order_by('-created_at')
 
     # Csapattagok kigyűjtése
