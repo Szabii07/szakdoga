@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/create_coach_profile.css' %}">
-    <title>Edző Profil Létrehozása</title>
+    <title>Edző profil létrehozása</title>
 </head>
 <body>
     <div class="container">
-        <h1>Edző Profil Létrehozása</h1>
+        <h1>Edző profil létrehozása</h1>
         <form method="post" action="{% url 'create_coach_profile' %}" enctype="multipart/form-data">
             {% csrf_token %}
             {% for field in form %}
@@ -32,7 +32,7 @@
                 <input type="hidden" name="qualifications" id="qualifications-input">
             </div>
 
-            <button type="submit">Profil Létrehozása</button>
+            <button type="submit">Profil létrehozása</button>
         </form>
     </div>
     <script src="{% static 'js/create_coach_profile.js' %}"></script>

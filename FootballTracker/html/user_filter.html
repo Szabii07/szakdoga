@@ -48,6 +48,14 @@
 
             <!-- Additional filters for players -->
             <div id="player-filters" class="additional-filters" style="display: {% if request.GET.user_type == 'player' %}block{% else %}none{% endif %};">
+                <label for="team_name">Csapat</label>
+                <select name="team_name" id="team_name">
+                    <option value="">--Válassz--</option>
+                    {% for team in teams %}
+                        <option value="{{ team.name }}" {% if request.GET.team_name == team.name %}selected{% endif %}>{{ team.name }}</option>
+                    {% endfor %}
+                </select>
+
                 <label for="min_height">Min. Magasság:</label>
                 <input type="number" name="min_height" id="min_height" value="{{ request.GET.min_height }}">
 
@@ -99,7 +107,7 @@
                                 <p><strong>{{ player.team_name }}</strong></p>
                                 <p>Magasság: {{ player.height }} cm</p>
                                 <p>Poszt: {{ player.position }}</p>
-                                <p>Születési idő: {{ player.birthdate }}</p>
+                                <p>Születési idő: {{ player.birthdate|date:"Y.m.d" }}</p>
                                 <p>Keres csapatot: {{ player.looking_for_team|yesno:"Igen, Nem" }}</p>
                             </div>
                         </a>
@@ -114,8 +122,9 @@
                             <img src="{% if coach.user.avatar %}{{ coach.user.avatar.url }}{% else %}{% static 'images/default_avatar.png' %}{% endif %}" alt="Coach Avatar" class="member-avatar">
                             <div class="details">
                                 <h3>{{ coach.user.first_name }} {{ coach.user.last_name }}</h3>
-                                <p>Csapat: {{ coach.team }}</p>
-                                <p>Minősítések: {{ coach.qualifications }}</p>
+                                <p>Születési idő: {{ coach.birthdate|date:"Y.m.d" }}</p>
+                                <p>Csapat: {% if coach.team %}{{ coach.team }}{% else %}-{% endif %}</p>
+                                <p>Minősítések: {% if coach.qualifications %}{{ coach.qualifications }}{% else %}-{% endif %}</p>
                             </div>
                         </a>
                     </div>
@@ -129,6 +138,10 @@
                             <img src="{% if manager.user.avatar %}{{ manager.user.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}">
                             <div class="details">
                                 <h3>{{ manager.user.first_name }} {{ manager.user.last_name }}</h3>
+<<<<<<< HEAD
+                                <p>Születési idő: {{ manager.birthdate|date:"Y.m.d" }}</p>
+=======
+>>>>>>> ea9aa5dc1c2b5424f1fb71ac9fb60f3459e0801c
                             </div>
                         </a>
                     </div>

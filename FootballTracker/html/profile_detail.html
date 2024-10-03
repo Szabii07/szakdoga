@@ -39,7 +39,7 @@
         </div>
     </header>
     <main>
-        <h1>Profil Részletek</h1>
+        <h1>Profil részletek</h1>
         {% if player_profile %}
         <div class="profile-detail">
             <img src="{% if player_profile.user_profile.avatar %}{{ player_profile.user_profile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="User Avatar">
@@ -47,7 +47,7 @@
             <p>Csapat: <strong>{{ player_profile.team_name }}</strong></p>
             <p>Magasság: {{ player_profile.height }} cm</p>
             <p>Poszt: {{ player_profile.position }}</p>
-            <p>Születési idő: {{ player_profile.birthdate }}</p>
+            <p>Születési idő: {{ player_profile.birthdate|date:"Y.m.d" }}</p>
             <p>Keres csapatot: {{ player_profile.looking_for_team|yesno:"Igen, Nem" }}</p>
 
             <!-- Follow/Unfollow Button -->
@@ -65,7 +65,13 @@
             <img src="{% if coach_profile.user.avatar %}{{ coach_profile.user.avatar.url }}{% else %}{% static 'images/default_avatar.png' %}{% endif %}" alt="Coach Avatar" class="member-avatar">
             <h2>{{ coach_profile.user.first_name }} {{ coach_profile.user.last_name }}</h2>
             <p>Csapat: <strong>{{ coach_profile.team }}</strong></p>
+<<<<<<< HEAD
+            <p>Születési idő: {{ coach_profile.birthdate|date:"Y.m.d" }}</p>
+            <p>Csapat: {% if coach.team %}{{ coach.team }}{% else %}-{% endif %}</p>
+            <p>Minősítések: {% if coach.qualifications %}{{ coach.qualifications }}{% else %}-{% endif %}</p>
+=======
             <p>Minősítések: {{ coach_profile.qualifications }}</p>
+>>>>>>> ea9aa5dc1c2b5424f1fb71ac9fb60f3459e0801c
 
             <!-- Follow/Unfollow Button -->
             {% if user.is_authenticated %}

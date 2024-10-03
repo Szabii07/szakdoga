@@ -17,21 +17,21 @@
                 {% csrf_token %}
                 <h1>Fiók létrehozása</h1>
                 <div class="form-group">
-                    <label for="signup-username">{{ signup_form.username.label }}</label>
+                    <label for="signup-username">Felhasználónév</label>
                     {{ signup_form.username }}
                     {% if signup_form.username.errors %}
                     <div class="error">{{ signup_form.username.errors }}</div>
                     {% endif %}
                 </div>
                 <div class="form-group">
-                    <label for="signup-password1">{{ signup_form.password1.label }}</label>
+                    <label for="signup-password1">Jelszó</label>
                     {{ signup_form.password1 }}
                     {% if signup_form.password1.errors %}
                     <div class="error">{{ signup_form.password1.errors }}</div>
                     {% endif %}
                 </div>
                 <div class="form-group">
-                    <label for="signup-password2">{{ signup_form.password2.label }}</label>
+                    <label for="signup-password2">Jelszó megerősítése</label>
                     {{ signup_form.password2 }}
                     {% if signup_form.password2.errors %}
                     <div class="error">{{ signup_form.password2.errors }}</div>
@@ -44,15 +44,22 @@
             <form method="post" action="{% url 'index' %}">
                 {% csrf_token %}
                 <h1>Bejelentkezés</h1>
-                {% for field in login_form %}
                 <div class="form-group">
-                    <label for="login-{{ field.id_for_label }}">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.errors %}
-                    <div class="error">{{ field.errors }}</div>
+                    <label for="id_username">Felhasználónév</label>
+                    {{ login_form.username }}
+                    {% if login_form.username.errors %}
+                    <div class="error">{{ login_form.username.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="id_password">Jelszó</label>
+                    {{ login_form.password }}
+                    {% if login_form.password.errors %}
+                    <div class="error">{{ login_form.password.errors }}</div>
                     {% endif %}
                 </div>
                 {% endfor %}
+                <a href="#">Elfelejtett jelszó</a>
                 <button type="submit" name="login">Bejelentkezés</button>
             </form>
         </div>
