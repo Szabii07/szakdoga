@@ -24,6 +24,13 @@ class UserProfile(models.Model):
         return f'{self.first_name} {self.last_name}'
     pass
 
+class Team(models.Model):
+    name = models.CharField(max_length=100)
+    coach = models.OneToOneField('Coach', on_delete=models.SET_NULL, related_name='coached_team', null=True, blank=True)
+    players = models.ManyToManyField('PlayerProfile', related_name='teams')
+    def __str__(self):
+        return self.name
+
 class PlayerProfile(models.Model):
     POSITION_CHOICES = [
         ('GK', 'Kapus'),
@@ -41,6 +48,7 @@ class PlayerProfile(models.Model):
     user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, default=None)
     birthdate = models.DateField(verbose_name="Születési idő")
     team_name = models.CharField(max_length=255, verbose_name="Csapatnév", null=True, blank=True)
+    team = models.ForeignKey(Team, on_delete=models.SET_NULL, null=True, blank=True)
     position = models.TextField(verbose_name="Pozíciók")
     preferred_foot = models.CharField(max_length=10, choices=[('left', 'Bal'), ('right', 'Jobb'), ('two', 'Kétlábas')], verbose_name="Milyen lábas", default='right')
     height = models.IntegerField(verbose_name="Magasság")
@@ -50,13 +58,6 @@ class PlayerProfile(models.Model):
     def __str__(self):
         return f'{self.team_name} - {self.position}'
     
-class Team(models.Model):
-    name = models.CharField(max_length=100)
-    coach = models.OneToOneField('Coach', on_delete=models.SET_NULL, related_name='coached_team', null=True, blank=True)
-    players = models.ManyToManyField(PlayerProfile, related_name='teams')
-
-    def __str__(self):
-        return self.name
 
 class Coach(models.Model):
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)

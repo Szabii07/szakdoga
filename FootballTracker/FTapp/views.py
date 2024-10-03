@@ -125,12 +125,18 @@ def create_user_profile(request):
     return render(request, 'create_user_profile.html', {'form': form})
 
 
-
-
 @role_required('player')
 @login_required
 def create_player_profile(request):
+    user_profile = get_object_or_404(UserProfile, user=request.user)
+
     if request.method == 'POST':
+<<<<<<< HEAD
+        form = PlayerProfileForm(request.POST)
+        if form.is_valid():
+            player_profile = form.save(commit=False)
+            player_profile.user_profile = user_profile
+=======
         profile_form = PlayerProfileForm(request.POST, request.FILES)
         if profile_form.is_valid():
             player_profile = profile_form.save(commit=False)
@@ -147,9 +153,31 @@ def create_player_profile(request):
                 player_profile.team = team
             else:
                 player_profile.team = None
+>>>>>>> ea9aa5dc1c2b5424f1fb71ac9fb60f3459e0801c
             
+            # Team creation/update logic
+            team_choice = form.cleaned_data.get('team_choice')
+            team_name = form.cleaned_data.get('team_name')
+
             player_profile.save()
 
+<<<<<<< HEAD
+            if team_choice:
+                # Use selected team
+                team = team_choice
+            elif team_name:
+                # Create a new team
+                team, created = Team.objects.get_or_create(name=team_name)
+            else:
+                team = None
+
+            if team:
+                team.players.add(player_profile)  # Add player to the team
+                player_profile.team_name = team.name  # Optionally store the team name in player profile
+                player_profile.save()
+
+=======
+>>>>>>> ea9aa5dc1c2b5424f1fb71ac9fb60f3459e0801c
             # Pozíciók
             positions = request.POST.get('position', '').split(',')
             player_profile.position = ','.join(positions)
@@ -157,7 +185,7 @@ def create_player_profile(request):
 
             # Játékos csapathoz való hozzáadása
             if player_profile.team:
-                player_profile.team.players.add(player_profile)
+                player_profile.team.players.add(player)
 
             return redirect('player_dashboard')
         else:
@@ -241,7 +269,7 @@ def create_manager_profile_view(request):
 
 def search_players(request):
     query = request.GET.get('q', '')
-    players = PlayerProfile.objects.filter(user_profile__first_name__icontains=query)  # Adjust based on search criteria
+    players = PlayerProfile.objects.filter(user_profile__first_name__icontains=query)
     player_list = [{'id': player.id, 'first_name': player.user_profile.first_name, 'last_name': player.user_profile.last_name} for player in players]
     return JsonResponse({'players': player_list})
 
@@ -252,6 +280,14 @@ def player_dashboard(request):
     teamName = player_profile.team_name
     team = Team.objects.get(name=teamName)
 
+<<<<<<< HEAD
+    try:
+        team = Team.objects.get(name=teamName)
+    except Team.DoesNotExist:
+        team = None
+
+=======
+>>>>>>> ea9aa5dc1c2b5424f1fb71ac9fb60f3459e0801c
     posts = Post.objects.all().order_by('-created_at')
 
     # Csapattagok kigyűjtése
@@ -408,6 +444,7 @@ def user_filter(request):
     players = PlayerProfile.objects.all()
     coaches = Coach.objects.all()
     managers = Manager.objects.all()
+    teams = Team.objects.all()
     
     if user_type == 'player':
         min_height = request.GET.get('min_height')
@@ -418,6 +455,8 @@ def user_filter(request):
         preferred_foot = request.GET.get('preferred_foot')
         location = request.GET.get('location')
         looking_for_team = request.GET.get('looking_for_team')
+        team_name = request.GET.get('team_name')
+        
 
         if min_height:
             players = players.filter(height__gte=min_height)
@@ -439,29 +478,35 @@ def user_filter(request):
             players = players.filter(location__icontains=location)
         if looking_for_team:
             players = players.filter(looking_for_team=looking_for_team)
-        
+        if team_name:
+            players = players.filter(team_name=team_name)
+
         context = {
             'players': players,
             'coaches': None,
             'managers': None,
+            'teams': teams,
         }
     elif user_type == 'coach':
         context = {
             'players': None,
             'coaches': coaches,
             'managers': None,
+            'teams': teams,
         }
     elif user_type == 'manager':
         context = {
             'players': None,
             'coaches': None,
             'managers': managers,
+            'teams': teams,
         }
     else:
         context = {
             'players': None,
             'coaches': None,
             'managers': None,
+            'teams': teams,
         }
     
     return render(request, 'user_filter.html', context)

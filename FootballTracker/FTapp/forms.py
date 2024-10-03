@@ -39,25 +39,30 @@ class UserProfileForm(forms.ModelForm):
         }
 
 class PlayerProfileForm(forms.ModelForm):
-    team_name = forms.CharField(max_length=255, required=False)
+    team_name = forms.CharField(max_length=100, required=False, label="Csapatnév")
+    team_choice = forms.ModelChoiceField(queryset=Team.objects.all(), required=False, label="Válassz csapatot")
+
 
     class Meta:
         model = PlayerProfile
-        fields = ['birthdate', 'team_name', 'position', 'preferred_foot', 'height', 'location', 'looking_for_team']
+        fields = ['birthdate', 'team_name', 'team_choice', 'position', 'preferred_foot', 'height', 'location', 'looking_for_team']
         widgets = {
             'birthdate': forms.DateInput(attrs={'type': 'date'}),
-            'position': forms.HiddenInput(),  # Hidden field to be populated by JavaScript
+            'position': forms.HiddenInput(), #JS
             'preferred_foot': forms.Select(choices=[('left', 'Bal'), ('right', 'Jobb'), ('two', 'Kétlábas')])
         }
         labels = {
             'birthdate': 'Születési idő',
             'team_name': 'Csapatnév',
+            'team_choice': 'Csapatválasztó',
             'position': 'Pozíciók',
             'preferred_foot': 'Milyen lábas',
             'height': 'Magasság',
             'location': 'Tartózkodási hely',
             'looking_for_team': 'Keres csapatot?',
         }
+
+
 
 class CoachForm(forms.ModelForm):
     birthdate = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
