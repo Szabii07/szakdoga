@@ -65,13 +65,9 @@
             <img src="{% if coach_profile.user.avatar %}{{ coach_profile.user.avatar.url }}{% else %}{% static 'images/default_avatar.png' %}{% endif %}" alt="Coach Avatar" class="member-avatar">
             <h2>{{ coach_profile.user.first_name }} {{ coach_profile.user.last_name }}</h2>
             <p>Csapat: <strong>{{ coach_profile.team }}</strong></p>
-<<<<<<< HEAD
             <p>Születési idő: {{ coach_profile.birthdate|date:"Y.m.d" }}</p>
             <p>Csapat: {% if coach.team %}{{ coach.team }}{% else %}-{% endif %}</p>
             <p>Minősítések: {% if coach.qualifications %}{{ coach.qualifications }}{% else %}-{% endif %}</p>
-=======
-            <p>Minősítések: {{ coach_profile.qualifications }}</p>
->>>>>>> ea9aa5dc1c2b5424f1fb71ac9fb60f3459e0801c
 
             <!-- Follow/Unfollow Button -->
             {% if user.is_authenticated %}
