@@ -155,7 +155,7 @@
                 <ul>
                     {% for conversation_user in conversation_users %}
                     <li>
-                        <a href="{% url 'conversation_view' user_id=conversation_user.id %}">
+                        <a href="{% url 'conversation_view' user_id=conversation_user.id %}" class="member">
                             <img src="{% if conversation_user.userprofile.avatar %}{{ conversation_user.userprofile.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="Avatar" class="small-avatar">
                             <span>{{ conversation_user.userprofile.first_name }} {{ conversation_user.userprofile.last_name }}</span>
                         </a>

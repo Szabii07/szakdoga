@@ -30,7 +30,7 @@
 
     <main>
         <div class="message-container">
-            <h2>Új Üzenet</h2>
+            <h2>Új üzenet</h2>
             <form method="POST" action="{% url 'send_message' %}">
                 {% csrf_token %}
                 {{ form.non_field_errors }}

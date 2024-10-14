@@ -20,6 +20,8 @@ body {
 
 h1 {
     font-weight: bold;
+    margin-top: 10px;
+    text-align: center;
 }
 
 h2 {
@@ -97,11 +99,15 @@ button.ghost {
 
 form {
     width: 100%;
+    text-align: center;
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 10px;
+    margin-top: 30px;
     width: 100%;
+    justify-content: center;
+
 }
 
 .form-group label {
@@ -112,7 +118,7 @@ form {
 
 .form-group input,
 .form-group select {
-    width: 100%;
+    width: 90%;
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #ccc;
@@ -121,6 +127,7 @@ form {
 
 form button {
     margin-top: 20px;
+    margin-left: 25%;
     justify-content: center;
     display: flex;
 }

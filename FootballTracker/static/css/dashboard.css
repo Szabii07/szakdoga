@@ -342,14 +342,14 @@ main {
 
 .conversation-list a {
     text-decoration: none;
-<<<<<<< HEAD
     color: black;
-=======
-    color: white;
->>>>>>> ea9aa5dc1c2b5424f1fb71ac9fb60f3459e0801c
     display: flex;
     align-items: center;
     font-weight: bold;
+}
+
+.conversation-list .button {
+    color:white
 }
 
 .small-avatar {

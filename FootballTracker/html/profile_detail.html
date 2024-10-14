@@ -66,8 +66,7 @@
             <h2>{{ coach_profile.user.first_name }} {{ coach_profile.user.last_name }}</h2>
             <p>Csapat: <strong>{{ coach_profile.team }}</strong></p>
             <p>Születési idő: {{ coach_profile.birthdate|date:"Y.m.d" }}</p>
-            <p>Csapat: {% if coach.team %}{{ coach.team }}{% else %}-{% endif %}</p>
-            <p>Minősítések: {% if coach.qualifications %}{{ coach.qualifications }}{% else %}-{% endif %}</p>
+            <p>Képesítések: {% if coach.qualifications %}{{ coach.qualifications }}{% else %}-{% endif %}</p>
 
             <!-- Follow/Unfollow Button -->
             {% if user.is_authenticated %}
@@ -83,8 +82,7 @@
         <div class="profile-detail">
             <img src="{% if manager_profile.user.avatar %}{{ manager_profile.user.avatar.url }}{% else %}{% static 'images/default_avatar.jpg' %}{% endif %}" alt="User Avatar">
             <h2>{{ manager_profile.user.first_name }} {{ manager_profile.user.last_name }}</h2>
-            <p>Csapat: {{ manager_profile.team }}</p>
-            <p>Tapasztalat: {{ manager_profile.experience }}</p>
+            <p>Csapat: {% if manager_profile.team %}{{ manager_profile.team }}{% else %}-{% endif %}</p>
 
             <!-- Follow/Unfollow Button -->
             {% if user.is_authenticated %}

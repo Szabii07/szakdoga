@@ -65,20 +65,21 @@ class PlayerProfileForm(forms.ModelForm):
 
 
 class CoachForm(forms.ModelForm):
-    birthdate = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
-    team_name = forms.CharField(max_length=100, required=False, label="Csapatnév")
-    team_choice = forms.ModelChoiceField(queryset=Team.objects.all(), required=False, label="Válassz csapatot")
+    birthdate = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), label="Születési idő")
+    team_choice = forms.ModelChoiceField(queryset=Team.objects.all(), required=False, label="Csapatnév")
+    team_name = forms.CharField(max_length=100, required=False, label="Új csapatnév")
+    
 
     class Meta:
         model = Coach
-        fields = ['birthdate', 'team_name', 'team_choice', 'qualifications']
+        fields = ['birthdate', 'team_choice', 'team_name', 'qualifications']
         widgets = {
             'qualifications': forms.HiddenInput(),
         }
         labels = {
             'birthdate': 'Születési idő',
-            'team_name': 'Csapatnév (új)',
             'team_choice': 'Csapatválasztó',
+            'team_name': 'Csapatnév (új)',
             'qualifications': 'Képesítések',
         }
     
@@ -97,7 +98,8 @@ class CoachForm(forms.ModelForm):
 
 class ManagerForm(forms.ModelForm):
     birthdate = forms.DateField(
-        widget=forms.DateInput(attrs={'type': 'date'})
+        widget=forms.DateInput(attrs={'type': 'date'}), 
+        label="Születési idő"
     )
     team = forms.CharField(label="Csapatnév", required=False)
     
